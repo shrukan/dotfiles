@@ -1,66 +1,47 @@
 return {
 	"nvim-treesitter/nvim-treesitter",
-	dependencies = {
-		{
-			"nvim-treesitter/nvim-treesitter-context",
-			event = "BufReadPost",
-			opts = function()
-				return { mode = "cursor", max_lines = 3 }
-			end,
-		},
-	},
-	event = { "BufReadPre", "BufNewFile" },
 	build = ":TSUpdate",
 	config = function()
-		local treesitter = require("nvim-treesitter.configs")
+		local ensureInstalled = {
+			"go",
+			"gomod",
+			"gosum",
+			"gowork",
+			"lua",
+			"javascript",
+			"typescript",
+			"angular",
+			"html",
+			"css",
+			"scss",
+			"vim",
+			"json",
+			"yaml",
+			"sql",
+			"dockerfile",
+			"git_config",
+			"gitcommit",
+			"git_rebase",
+			"gitignore",
+			"gitattributes",
+			"markdown",
+			"markdown_inline",
+			"bash",
+			"regex",
+		}
+		local alreadyInstalled = require("nvim-treesitter.config").get_installed()
+		local parsersToInstall = vim.iter(ensureInstalled)
+			:filter(function(parser)
+				return not vim.tbl_contains(alreadyInstalled, parser)
+			end)
+			:totable()
+		require("nvim-treesitter").install(parsersToInstall):wait(300000)
 
-		treesitter.setup({
-			highlight = {
-				enable = true,
-			},
-			indent = { enable = true },
-
-			-- ensure that all parser are installed sequentially (used in image)
-			sync_install = true,
-			ensure_installed = {
-				"go",
-				"gomod",
-				"gosum",
-				"gowork",
-				"lua",
-				"python",
-				"javascript",
-				"typescript",
-				"angular",
-				"html",
-				"css",
-				"scss",
-				"json",
-				"yaml",
-				"sql",
-				"dockerfile",
-				"git_config",
-				"gitcommit",
-				"git_rebase",
-				"gitignore",
-				"gitattributes",
-				"make",
-				"markdown",
-				"markdown_inline",
-				"bash",
-				"regex",
-				"templ",
-				"vim",
-			},
-			incremental_selection = {
-				enable = true,
-				keymaps = {
-					init_selection = "<C-space>",
-					node_incremental = "<C-space>",
-					scope_incremental = false,
-					node_decremental = "<bs>",
-				},
-			},
+		vim.api.nvim_create_autocmd("FileType", {
+			callback = function()
+				pcall(vim.treesitter.start)
+				vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+			end,
 		})
 	end,
 }
