@@ -5,11 +5,10 @@ return {
 		"williamboman/mason.nvim",
 	},
 	opts = {
-		-- This line is essential to making automatic installation work
 		handlers = {},
-		-- Mason will install these debuggers
 		ensure_installed = {
 			"delve",
 		},
+		automatic_installation = true,
 	},
 }
