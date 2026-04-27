@@ -2,13 +2,11 @@
 return {
 	"mfussenegger/nvim-dap",
 	lazy = true,
-	keys = {},
 	config = function()
 		vim.fn.sign_define("DapBreakpoint", { text = "🛑", texthl = "", linehl = "", numhl = "" })
 
 		local wk = require("which-key")
 		wk.add({
-
 			{
 				"<leader>db",
 				function()
@@ -17,7 +15,6 @@ return {
 				desc = "Toggle Breakpoint",
 				icon = "",
 			},
-
 			{
 				"<leader>dc",
 				function()
@@ -26,7 +23,6 @@ return {
 				desc = "Continue",
 				icon = "",
 			},
-
 			{
 				"<leader>dC",
 				function()
