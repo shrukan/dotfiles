@@ -2,6 +2,10 @@
 
 This is my current neovim configuration built from scratch.
 
+## Prerequisites
+
+There are some prerequisites for using this configuration.
+
 ## Plugins
 
 ## Known problems
