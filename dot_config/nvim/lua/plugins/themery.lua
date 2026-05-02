@@ -23,7 +23,7 @@ return {
 				{
 					name = "Jetbrains (Light)",
 					colorscheme = "jb",
-					before = [[ vim.opt.background = "ligth" ]],
+					before = [[ vim.opt.background = "light" ]],
 				},
 				{
 					name = "Jetbrains (Dark)",
