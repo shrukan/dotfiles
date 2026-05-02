@@ -58,3 +58,18 @@ To update your dotfiles after pulling new changes from the GitHub repository:
     ```
 
     This will sync any changes from your cloned `~/.dotfiles` directory to your actual dotfiles (`~/.config/nvim/`, etc.).
+
+## Task
+
+This repository also has a taskfile with all the used tasks. Task can easily be installed with
+
+```bash
+./scripts/install-task.sh
+```
+
+A lot of the different commands mentioned in this file, are also available via task.
+All available tasks can be listed with
+
+```bash
+task --list
+```
