@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: "3"
+
+tasks:
+  _chezmoi:
+    internal: true
+    cmd: chezmoi {{.CLI_ARGS}} --source="{{.ROOT_DIR}}"
+
+  init:
+    desc: "Initialize chezmoi for the first time or re-initialize (use with caution!)"
+    cmds:
+      - task: _chezmoi
+        vars: { CLI_ARGS: "init" }
+
+  apply:
+    desc: "Apply dotfiles using chezmoi"
+    cmds:
+      - task: _chezmoi
+        vars: { CLI_ARGS: "apply" }
+
+  diff:
+    desc: "Diff dotfiles using chezmoi"
+    cmds:
+      - task: _chezmoi
+        vars: { CLI_ARGS: "diff" }
