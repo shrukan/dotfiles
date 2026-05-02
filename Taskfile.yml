@@ -3,23 +3,37 @@
 version: "3"
 
 tasks:
+  install:chezmoi:
+    desc: "Install chezmoi via script"
+    cmd: ./scripts/install-chezmoi.sh
+
+  install:nvim:
+    desc: "Install neovim from source via script"
+    cmd: ./scripts/install-neovim-from-source.sh
+
+  install:all:
+    desc: "Install all the dependencies via scripts"
+    deps:
+      - install:chezmoi
+      - install:nvim
+
   _chezmoi:
     internal: true
     cmd: chezmoi {{.CLI_ARGS}} --source="{{.ROOT_DIR}}"
 
-  init:
+  chezmoi:init:
     desc: "Initialize chezmoi for the first time or re-initialize (use with caution!)"
     cmds:
       - task: _chezmoi
         vars: { CLI_ARGS: "init" }
 
-  apply:
+  chezmoi:apply:
     desc: "Apply dotfiles using chezmoi"
     cmds:
       - task: _chezmoi
         vars: { CLI_ARGS: "apply" }
 
-  diff:
+  chezmoi:diff:
     desc: "Diff dotfiles using chezmoi"
     cmds:
       - task: _chezmoi
