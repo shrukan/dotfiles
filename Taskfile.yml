@@ -21,19 +21,19 @@ tasks:
     internal: true
     cmd: chezmoi {{.CLI_ARGS}} --source="{{.ROOT_DIR}}"
 
-  chezmoi:init:
+  init:
     desc: "Initialize chezmoi for the first time or re-initialize (use with caution!)"
     cmds:
       - task: _chezmoi
         vars: { CLI_ARGS: "init" }
 
-  chezmoi:apply:
+  apply:
     desc: "Apply dotfiles using chezmoi"
     cmds:
       - task: _chezmoi
         vars: { CLI_ARGS: "apply" }
 
-  chezmoi:diff:
+  diff:
     desc: "Diff dotfiles using chezmoi"
     cmds:
       - task: _chezmoi
