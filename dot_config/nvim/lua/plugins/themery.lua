@@ -15,15 +15,27 @@ return {
 				{ name = "Kanagawa (Wave)", colorscheme = "kanagawa-wave" },
 				{ name = "Kanagawa (Lotus)", colorscheme = "kanagawa-lotus" },
 				{ name = "Kanagawa (Dragon)", colorscheme = "kanagawa-dragon" },
-				{ name = "Onedark (Deeper)", colorscheme = "onedark" },
-
+				{
+					name = "Onedark (Deeper)",
+					colorscheme = "onedark",
+					before = [[ vim.opt.background = "dark" ]],
+				},
+				{
+					name = "Jetbrains (Light)",
+					colorscheme = "jb",
+					before = [[ vim.opt.background = "light" ]],
+				},
+				{
+					name = "Jetbrains (Dark)",
+					colorscheme = "jb",
+					before = [[ vim.opt.background = "dark" ]],
+				},
 				{ name = "Cyberdream", colorscheme = "cyberdream" },
 				{ name = "Jellybeans", colorscheme = "jellybeans" },
 			},
-			livePreview = true, -- Apply theme while picking. Default to true.
+			livePreview = true,
 		})
 
-		-- keymaps
 		vim.keymap.set("n", "<leader>sc", "<cmd>Themery<CR>", { desc = "Colorscheme" })
 	end,
 }
