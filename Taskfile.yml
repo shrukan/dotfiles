@@ -38,3 +38,18 @@ tasks:
     cmds:
       - task: _chezmoi
         vars: { CLI_ARGS: "diff" }
+
+  docker:nvim:build:
+    desc: "Build the Neovim Docker image"
+    cmds:
+      - docker build -t nvim-env -f nvim-docker/Dockerfile .
+
+  docker:nvim:run:
+    desc: "Run the Neovim Docker container"
+    cmds:
+      - docker run -it --rm -v {{.USER_WORKING_DIR}}:/root/workspace nvim-env {{.CLI_ARGS}}
+
+  docker:nvim:shell:
+    desc: "Run a shell inside the Neovim Docker container for debugging/exploration"
+    cmds:
+      - docker run -it --rm -v {{.USER_WORKING_DIR}} nvim-env /bin/bash
