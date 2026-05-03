@@ -20,6 +20,7 @@ return {
 			{ "<leader>ci", group = "Information" },
 
 			{ "<leader>d", group = "Debug", icon = "" },
+			{ "<leader>dg", group = "Go", icon = "" },
 
 			{ "<leader>e", group = "Filesystem" },
 

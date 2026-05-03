@@ -3,13 +3,13 @@ return {
 	build = ":TSUpdate",
 	config = function()
 		local ensureInstalled = {
+			"dhall",
 			"go",
 			"gomod",
 			"gosum",
 			"gowork",
 			"lua",
 			"javascript",
-			"typescript",
 			"angular",
 			"html",
 			"css",
@@ -28,6 +28,8 @@ return {
 			"markdown_inline",
 			"bash",
 			"regex",
+			"templ",
+			"typescript",
 		}
 		local alreadyInstalled = require("nvim-treesitter.config").get_installed()
 		local parsersToInstall = vim.iter(ensureInstalled)

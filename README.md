@@ -8,6 +8,7 @@ This repository contains my personal configuration files (dotfiles) for various 
 * **Neovim:** My fully customized neovim setup, see [README](dot_config/nvim/README.md).
 * **Scripts:** This repository provides bash scripts for installing dependencies, such as chezmoi and neovim.
 * **Task:** For development and maintenance tasks, this repository uses [Task](https://taskfile.dev/#/).
+* **Dockerized Neovim:** An isolated Docker environment for Neovim, perfect for offline use, testing, or consistent development environments without polluting the host system.
 
 ## Installation & Setup
 

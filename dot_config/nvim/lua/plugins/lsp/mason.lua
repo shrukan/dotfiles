@@ -75,6 +75,9 @@ return {
 				{ "golangci-lint", condition = has_go },
 				{ "ruff", condition = has_python },
 				"rumdl", -- markdown
+
+				-- debuggers
+				"delve",
 			},
 
 			automatic_installation = true,
