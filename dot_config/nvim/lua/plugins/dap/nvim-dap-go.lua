@@ -17,7 +17,7 @@ return {
 		local wk = require("which-key")
 		wk.add({
 			{
-				"<leader>dt",
+				"<leader>dgt",
 				function()
 					require("dap-go").debug_test()
 				end,
