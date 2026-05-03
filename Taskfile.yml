@@ -11,6 +11,10 @@ tasks:
     desc: "Install neovim from source via script"
     cmd: ./scripts/install-neovim-from-source.sh
 
+  install:prek:
+    desc: "Install prek via script"
+    cmd: ./scripts/install-prek.sh
+
   install:all:
     desc: "Install all the dependencies via scripts"
     deps:
