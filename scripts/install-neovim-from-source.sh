@@ -27,7 +27,7 @@ run_as_sudo() {
 install_debian_deps() {
 	echo "Installing Debian/Ubuntu dependencies (this may require sudo)..."
 	run_as_sudo apt-get update
-	run_as_sudo apt-get install -y git cmake build-essential gettext ninja-build unzip libtool libtool-bin autoconf automake pkg-config g++ libjemalloc-dev python3 python3-pip python3-venv
+	run_as_sudo apt-get install -y git cmake build-essential gettext ninja-build unzip libtool libtool-bin autoconf automake pkg-config g++ libjemalloc-dev libicu-dev python3 python3-pip python3-venv
 }
 
 # --- Main Script ---
