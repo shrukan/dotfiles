@@ -4,10 +4,10 @@
 set -e
 
 # --- Configuration ---
-NVIM_VERSION="stable"
+INSTALL_PREFIX="$1"
+NVIM_VERSION="$2"
 # Directory where Neovim will be cloned
-CLONE_DIR="$HOME/src/neovim"
-INSTALL_PREFIX="$HOME/.local" # Or "$HOME/.local"
+CLONE_DIR="/tmp/nvim_build_source"
 
 # --- Functions ---
 
@@ -27,37 +27,23 @@ run_as_sudo() {
 install_debian_deps() {
 	echo "Installing Debian/Ubuntu dependencies (this may require sudo)..."
 	run_as_sudo apt-get update
-	run_as_sudo apt-get install -y git cmake build-essential gettext ninja-build unzip libtool libtool-bin autoconf automake pkg-config g++ libjemalloc-dev
+	run_as_sudo apt-get install -y git cmake build-essential gettext ninja-build unzip libtool libtool-bin autoconf automake pkg-config g++ libjemalloc-dev python3 python3-pip python3-venv
 }
 
 # --- Main Script ---
 
 echo "--- Neovim Installation from Source Script ---"
+echo "Targeting installation prefix: $INSTALL_PREFIX"
+echo "Building Neovim version: $NVIM_VERSION"
 
+# 1. Install Build Dependencies (for Debian/Ubuntu)
+echo "Installing build dependencies (this may require sudo)..."
 if command_exists apt-get; then
 	install_debian_deps
 else
 	echo "ERROR: Unsupported package manager. Please install dependencies manually."
 	exit 1
 fi
-
-# 1. Install Build Dependencies (for Debian/Ubuntu)
-echo "Installing build dependencies (this may require sudo)..."
-run_as_sudo apt-get update
-run_as_sudo apt-get install -y \
-	git \
-	cmake \
-	build-essential \
-	gettext \
-	ninja-build \
-	unzip \
-	libtool \
-	libtool-bin \
-	autoconf \
-	automake \
-	pkg-config \
-	g++ \
-	libjemalloc-dev # Optional, for jemalloc support (performance)
 
 echo "Build dependencies installed."
 
@@ -80,20 +66,24 @@ echo "Neovim source code is ready."
 
 # 3. Build Neovim
 echo "Building Neovim (this may take a few minutes)..."
-make CMAKE_BUILD_TYPE=Release CMAKE_INSTALL_PREFIX="$INSTALL_PREFIX"
+make CMAKE_BUILD_TYPE=Release CMAKE_INSTALL_PREFIX="$INSTALL_PREFIX" -j"$(nproc)" # Use all available cores
 
 # 4. Install Neovim
 echo "Installing Neovim to $INSTALL_PREFIX/bin (this may require sudo)..."
 run_as_sudo make install
 
-# 5. Verify Installation
+# 5. Clean up source directory
+echo "Cleaning up Neovim build source files..."
+rm -rf "$CLONE_DIR"
+
+# 6. Verify Installation
 echo "Verifying Neovim installation..."
 if command_exists nvim; then
 	echo "Neovim installed successfully:"
 	nvim --version | head -n 1
 else
 	echo "ERROR: Neovim appears to be installed, but 'nvim' command is not found in PATH."
-	echo "Please ensure '$INSTALL_PREFIX/bin' is in your system's PATH."
+	echo "This indicates an issue with the installation or PATH setup within the container."
 	echo "You might need to add 'export PATH=\"$INSTALL_PREFIX/bin:\$PATH\"' to your shell's config (e.g., .bashrc, .zshrc) and then 'source' it."
 	exit 1
 fi
