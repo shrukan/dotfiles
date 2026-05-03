@@ -12,13 +12,14 @@ tasks:
     cmd: ./scripts/install-neovim-from-source.sh
 
   install:prek:
-    desc: "Install prek via script"
+    desc: "Install prek via script for handling pre-commit hooks"
     cmd: ./scripts/install-prek.sh
 
   install:all:
     desc: "Install all the dependencies via scripts"
     deps:
       - install:chezmoi
+      - install:prek
       - install:nvim
 
   _chezmoi:
