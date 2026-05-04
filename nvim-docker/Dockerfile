@@ -25,6 +25,7 @@ RUN apt-get update && \
 	git \
 	xclip \
 	tzdata \
+	openssh-client \
 	# Additional dependencies for pyenv to build various Python versions
 	libssl-dev \
 	zlib1g-dev \
