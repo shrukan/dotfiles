@@ -12,7 +12,7 @@ tasks:
     vars:
       VERSION: '{{.VERSION | default "stable"}}'
       INSTALL_PREFIX: '{{.INSTALL_PREFIX | default "/usr/local"}}'
-    cmd: ./scripts/install-neovim-from-source.sh {{.VERSION}}
+    cmd: ./scripts/install-neovim-from-source.sh {{.INSTALL_PREFIX}} {{.VERSION}}
 
   install:prek:
     desc: "Install prek via script for handling pre-commit hooks"
