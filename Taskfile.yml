@@ -9,7 +9,10 @@ tasks:
 
   install:nvim:
     desc: "Install neovim from source via script"
-    cmd: ./scripts/install-neovim-from-source.sh
+    vars:
+      VERSION: '{{.VERSION | default "stable"}}'
+      INSTALL_PREFIX: '{{.INSTALL_PREFIX | default "/usr/local"}}'
+    cmd: ./scripts/install-neovim-from-source.sh {{.VERSION}}
 
   install:prek:
     desc: "Install prek via script for handling pre-commit hooks"
@@ -21,10 +24,16 @@ tasks:
 
   install:all:
     desc: "Install all the dependencies via scripts"
-    deps:
-      - install:chezmoi
-      - install:prek
-      - install:nvim
+    vars:
+      VERSION: '{{.VERSION | default "stable"}}'
+      INSTALL_PREFIX: '{{.INSTALL_PREFIX | default "/usr/local"}}'
+    cmds:
+      - task: install:alacritty
+      - task: install:chezmoi
+      - task: install:prek
+      - task: install:nvim
+        vars:
+          { VERSION: "{{.VERSION }}", INSTALL_PREFIX: "{{ .INSTALL_PREFIX }}" }
 
   _chezmoi:
     internal: true
