@@ -3,7 +3,11 @@ extends:
   - "@commitlint/config-conventional"
 rules:
   scope-enum:
-    [2, "always", ["repo", "scripts", "task", "chezmoi", "docker", "nvim"]]
+    [
+      2,
+      "always",
+      ["repo", "scripts", "task", "docker", "chezmoi", "nvim", "alacritty"],
+    ]
   type-enum:
     - 2
     - always
