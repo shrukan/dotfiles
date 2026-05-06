@@ -6,7 +6,16 @@ rules:
     [
       2,
       "always",
-      ["repo", "scripts", "task", "docker", "chezmoi", "nvim", "alacritty"],
+      [
+        "repo",
+        "scripts",
+        "task",
+        "docker",
+        "readme",
+        "chezmoi",
+        "nvim",
+        "alacritty",
+      ],
     ]
   type-enum:
     - 2
