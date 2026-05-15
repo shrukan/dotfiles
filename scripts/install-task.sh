@@ -29,7 +29,7 @@ setup_autocompletion() {
 	# Bash completion
 	if command_exists bash && [ -d "$BASH_COMPLETION_DIR" ]; then
 		echo "  - Installing Bash completion to $BASH_COMPLETION_DIR..."
-		"$INSTALL_DIR/$TASK_BIN_NAME" completion bash | sudo tee "$BASH_COMPLETION_DIR/$TASK_BIN_NAME" >/dev/null
+		"$TASK_BIN_NAME" --completion bash | sudo tee "$BASH_COMPLETION_DIR/$TASK_BIN_NAME" >/dev/null
 		echo "    Bash completion installed. You might need to restart your shell or run 'source /etc/bash_completion' (if not automatically sourced)."
 	elif command_exists bash; then
 		echo "  - WARNING: Bash completion directory $BASH_COMPLETION_DIR not found. You might need to set it up manually."
@@ -39,7 +39,7 @@ setup_autocompletion() {
 	# Zsh completion
 	if command_exists zsh && [ -d "$ZSH_COMPLETION_DIR" ]; then
 		echo "  - Installing Zsh completion to $ZSH_COMPLETION_DIR..."
-		"$INSTALL_DIR/$TASK_BIN_NAME" completion zsh | sudo tee "$ZSH_COMPLETION_DIR/$TASK_BIN_NAME" >/dev/null
+		"$TASK_BIN_NAME" --completion zsh | sudo tee "$ZSH_COMPLETION_DIR/$TASK_BIN_NAME" >/dev/null
 		echo "    Zsh completion installed. Make sure '$ZSH_COMPLETION_DIR' is in your \$fpath and you run 'compinit'."
 		echo "    If using Oh My Zsh, you might move it to ~/.oh-my-zsh/custom/plugins/task/_task"
 	elif command_exists zsh; then
