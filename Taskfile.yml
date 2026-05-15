@@ -35,6 +35,10 @@ tasks:
         vars:
           { VERSION: "{{.VERSION }}", INSTALL_PREFIX: "{{ .INSTALL_PREFIX }}" }
 
+  uninstall:task:
+    desc: "Uninstall task"
+    cmd: ./scripts/install-task.sh uninstall
+
   _chezmoi:
     internal: true
     cmd: chezmoi {{.CLI_ARGS}} --source="{{.ROOT_DIR}}"
