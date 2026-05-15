@@ -35,6 +35,10 @@ tasks:
         vars:
           { VERSION: "{{.VERSION }}", INSTALL_PREFIX: "{{ .INSTALL_PREFIX }}" }
 
+  uninstall:alacritty:
+    desc: "Uninstall alacritty"
+    cmd: ./scripts/install-alacritty.sh uninstall
+
   uninstall:task:
     desc: "Uninstall task"
     cmd: ./scripts/install-task.sh uninstall
