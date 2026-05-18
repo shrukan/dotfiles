@@ -9,11 +9,59 @@ ZELLIJ_BIN_NAME="zellij"
 ZELLIJ_VERSION="0.44.3"
 ZELLIJ_REPO="zellij-org/zellij"
 
+# Autocompletion directories
+BASH_COMPLETION_DIR="/etc/bash_completion.d"
+ZSH_COMPLETION_DIR="/usr/local/share/zsh/site-functions"
+
 # --- Functions ---
 
 # Function to check if a command exists
 command_exists() {
 	command -v "$1" >/dev/null 2>&1
+}
+
+# Function to setup Zellij autocompletion
+setup_zellij_autocompletion() {
+	echo "Setting up autocompletion for Zellij..."
+
+	# Zellij generates its completion scripts directly
+	# Ensure Zellij binary is in PATH for its completion command to work
+	export PATH="$INSTALL_DIR:$PATH"
+
+	# Bash completion
+	if command_exists bash && [ -d "$BASH_COMPLETION_DIR" ]; then
+		echo "  - Installing Bash completion for 'zellij' to $BASH_COMPLETION_DIR..."
+		"$ZELLIJ_BIN_NAME" setup --generate-completion bash | sudo tee "$BASH_COMPLETION_DIR/$ZELLIJ_BIN_NAME" >/dev/null
+		echo "    Bash completion installed. You might need to restart your shell or run 'source /etc/bash_completion'."
+	elif command_exists bash; then
+		echo "  - WARNING: Bash completion directory $BASH_COMPLETION_DIR not found. Manual setup advised."
+		echo "    To install manually: '$INSTALL_DIR/$ZELLIJ_BIN_NAME setup --generate-completion bash > ~/.bash_completion/zellij' and source it in your .bashrc."
+	fi
+
+	# Zsh completion
+	if command_exists zsh && [ -d "$ZSH_COMPLETION_DIR" ]; then
+		echo "  - Installing Zsh completion for 'zellij' to $ZSH_COMPLETION_DIR..."
+		"$ZELLIJ_BIN_NAME" setup --generate-completion zsh | sudo tee "$ZSH_COMPLETION_DIR/_$ZELLIJ_BIN_NAME" >/dev/null
+		echo "    Zsh completion installed. Make sure '$ZSH_COMPLETION_DIR' is in your \$fpath and you run 'compinit'."
+	elif command_exists zsh; then
+		echo "  - WARNING: Zsh completion directory $ZSH_COMPLETION_DIR not found. Manual setup advised."
+		echo "    To install manually: '$INSTALL_DIR/$ZELLIJ_BIN_NAME setup --generate-completion zsh > ~/.zsh/completion/_zellij' and source it or add to fpath."
+	fi
+}
+
+# Function to remove Zellij autocompletion
+remove_zellij_autocompletion() {
+	echo "Removing autocompletion files for Zellij..."
+
+	if [ -f "$BASH_COMPLETION_DIR/$ZELLIJ_BIN_NAME" ]; then
+		sudo rm -f "$BASH_COMPLETION_DIR/$ZELLIJ_BIN_NAME"
+		echo "  - Removed Bash completion for zellij."
+	fi
+
+	if [ -f "$ZSH_COMPLETION_DIR/_$ZELLIJ_BIN_NAME" ]; then
+		sudo rm -f "$ZSH_COMPLETION_DIR/_$ZELLIJ_BIN_NAME"
+		echo "  - Removed Zsh completion for zellij."
+	fi
 }
 
 # Function to uninstall Zellij installed from GitHub release
@@ -25,6 +73,7 @@ uninstall_from_release() {
 	else
 		echo "Zellij binary not found in $INSTALL_DIR."
 	fi
+	remove_zellij_autocompletion # Remove completion scripts too
 	echo "Zellij uninstallation attempt complete."
 }
 
@@ -44,6 +93,7 @@ echo "--- Zellij Installation Script ---"
 if command_exists "$ZELLIJ_BIN_NAME"; then
 	echo "Zellij is already installed:"
 	"$ZELLIJ_BIN_NAME" --version
+	setup_zellij_autocompletion # Ensure completion is set up even if already installed
 	echo "Exiting."
 	exit 0
 fi
@@ -61,9 +111,7 @@ esac
 
 # Zellij's releases are typically tar.gz archives containing the binary
 ZELLIJ_TARGET="unknown-linux-musl" # Common for many Linux distributions
-# If specifically targeting glibc-based systems (e.g., Ubuntu, Fedora), you might use "-gnu" instead of "-musl".
-# Check the specific release assets for the exact target name.
-# For simplicity and broad compatibility, musl is often chosen for pre-compiled Linux binaries.
+# Check release assets for exact target name. Alternatives like "unknown-linux-gnu" exist.
 
 DOWNLOAD_URL="https://github.com/$ZELLIJ_REPO/releases/download/v$ZELLIJ_VERSION/zellij-$ZELLIJ_ARCH-$ZELLIJ_TARGET.tar.gz"
 DOWNLOAD_FILE="/tmp/zellij-$ZELLIJ_VERSION.tar.gz"
@@ -83,6 +131,9 @@ if curl -fsLS "$DOWNLOAD_URL" -o "$DOWNLOAD_FILE"; then
 	rm -rf "$EXTRACT_DIR"
 
 	echo "Zellij binary installed to $INSTALL_DIR/$ZELLIJ_BIN_NAME"
+
+	# 3. Setup autocompletion after binary is installed
+	setup_zellij_autocompletion
 
 	# Verify installation
 	echo "Verifying Zellij installation..."
