@@ -139,8 +139,6 @@ keybinds clear-defaults=true {
             }
             SwitchToMode "normal"
         }
-					
-				bind "Ctrl d" { QuitSession; } 
     }
     shared_except "locked" {
         bind "Alt left" { MoveFocusOrTab "left"; }
