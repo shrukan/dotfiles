@@ -26,6 +26,7 @@ return {
 			"gitattributes",
 			"markdown",
 			"markdown_inline",
+			"python",
 			"bash",
 			"regex",
 			"templ",
