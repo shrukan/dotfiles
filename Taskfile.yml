@@ -65,6 +65,16 @@ tasks:
       - task: _chezmoi
         vars: { CLI_ARGS: "diff" }
 
+  add:
+    desc: "Import a file or directory into source"
+    requires:
+      vars:
+        - TARGET
+    cmds:
+      - task: _chezmoi
+        vars:
+          CLI_ARGS: "add {{.TARGET}}"
+
   docker:nvim:build:
     desc: "Build the Neovim Docker image"
     cmds:
