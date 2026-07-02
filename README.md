@@ -7,7 +7,7 @@ This repository contains my personal configuration files (dotfiles) for various 
 * **Chezmoi Integration:** Seamless management and synchronization of dotfiles across systems.
 * **Neovim:** My fully customized neovim setup, see [README](dot_config/nvim/README.md).
 * **Alacritty:** Customized fast terminal emulator.
-* **Scripts:** This repository provides bash scripts for installing dependencies, such as chezmoi and neovim.
+* **Scripts:** This repository provides bash scripts for installing dependencies, such as chezmoi, neovim, and fonts.
 * **Task:** For development and maintenance tasks, this repository uses [Task](https://taskfile.dev/#/).
 * **Dockerized Neovim:** An isolated Docker environment for Neovim, perfect for offline use, testing, or consistent development environments without polluting the host system.
 
@@ -29,10 +29,16 @@ cd ~/.dotfiles
 If `chezmoi` is not already installed on your system, run the provided installation script:
 
 ```bash
-./scripts/install-chezmoi.sh
+./scripts/chezmoi.sh
 ```
 
 This script will download and install the latest `chezmoi` binary to `~/.local/bin`.
+
+To uninstall:
+
+```bash
+./scripts/chezmoi.sh --uninstall
+```
 
 ### 3. Initialize and Apply Dotfiles with Chezmoi
 
@@ -59,14 +65,14 @@ To update your dotfiles after pulling new changes from the GitHub repository:
     chezmoi apply
     ```
 
-    This will sync any changes from your cloned `~/.dotfiles` directory to your actual dotfiles (`~/.config/nvim/`, etc.).
+   This will sync any changes from your cloned `~/.dotfiles` directory to your actual dotfiles (`~/.config/nvim/`, etc.).
 
 ## Task
 
 This repository also has a taskfile with all the used tasks. Task can easily be installed with
 
 ```bash
-./scripts/install-task.sh
+./scripts/task.sh
 ```
 
 A lot of the different commands mentioned in this file, are also available via task.
@@ -75,3 +81,56 @@ All available tasks can be listed with
 ```bash
 task --list
 ```
+
+## Scripts
+
+All installation scripts follow a consistent pattern:
+
+* Run without arguments to install
+* Run with `--uninstall` to remove
+
+| Script | Description |
+|---|---|
+| `./scripts/chezmoi.sh` | Install/uninstall chezmoi |
+| `./scripts/prek.sh` | Install/uninstall prek (pre-commit hooks) |
+| `./scripts/alacritty.sh` | Install/uninstall alacritty |
+| `./scripts/fonts.sh` | Install/uninstall configured fonts |
+| `./scripts/nvim-deps.sh` | Install/uninstall Neovim runtime dependencies (fzf, ripgrep, lazygit, Go, Node.js, uv, templ, tree-sitter-cli) |
+| `./scripts/nvim.sh [PREFIX] [VERSION]` | Install/uninstall neovim from source |
+| `./scripts/task.sh` | Install/uninstall task |
+
+### Uninstalling
+
+Each tool has a corresponding uninstall task:
+
+```bash
+task uninstall:chezmoi
+task uninstall:prek
+task uninstall:alacritty
+task uninstall:task
+```
+
+For fonts and neovim, use the script directly:
+
+```bash
+./scripts/fonts.sh --uninstall
+./scripts/nvim.sh --uninstall
+```
+
+## Fonts
+
+Fonts are installed to `~/.local/share/fonts` and managed via the `install:fonts` task. To install all configured fonts:
+
+```bash
+task install:fonts
+```
+
+To uninstall:
+
+```bash
+./scripts/fonts.sh --uninstall
+```
+
+| Font | Nerd Font variant |
+|---|---|
+| JetBrainsMono | Yes |
