@@ -80,8 +80,8 @@ uninstall_task() {
 
 # --- Main Script ---
 
-# Check for uninstall argument
-if [[ "$1" == "uninstall" ]]; then
+# Handle --uninstall flag
+if [[ "$1" == "--uninstall" ]]; then
 	echo "--- Task Uninstallation Script ---"
 	uninstall_task
 	echo "--- Task Uninstallation Complete ---"

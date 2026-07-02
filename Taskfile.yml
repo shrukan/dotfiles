@@ -5,22 +5,30 @@ version: "3"
 tasks:
   install:chezmoi:
     desc: "Install chezmoi via script"
-    cmd: ./scripts/install-chezmoi.sh
+    cmd: ./scripts/chezmoi.sh
 
   install:nvim:
     desc: "Install neovim from source via script"
     vars:
       VERSION: '{{.VERSION | default "stable"}}'
       INSTALL_PREFIX: '{{.INSTALL_PREFIX | default "/usr/local"}}'
-    cmd: ./scripts/install-neovim-from-source.sh {{.INSTALL_PREFIX}} {{.VERSION}}
+    cmd: ./scripts/nvim.sh {{.INSTALL_PREFIX}} {{.VERSION}}
 
   install:prek:
     desc: "Install prek via script for handling pre-commit hooks"
-    cmd: ./scripts/install-prek.sh
+    cmd: ./scripts/prek.sh
 
   install:alacritty:
     desc: "Install alacritty via script"
-    cmd: ./scripts/install-alacritty.sh
+    cmd: ./scripts/alacritty.sh
+
+  install:fonts:
+    desc: "Install configured fonts (list in README.md)"
+    cmd: ./scripts/fonts.sh
+
+  install:nvim-deps:
+    desc: "Install Neovim runtime dependencies"
+    cmd: ./scripts/nvim-deps.sh
 
   install:all:
     desc: "Install all the dependencies via scripts"
@@ -34,14 +42,23 @@ tasks:
       - task: install:nvim
         vars:
           { VERSION: "{{.VERSION }}", INSTALL_PREFIX: "{{ .INSTALL_PREFIX }}" }
+      - task: install:fonts
 
   uninstall:alacritty:
     desc: "Uninstall alacritty"
-    cmd: ./scripts/install-alacritty.sh uninstall
+    cmd: ./scripts/alacritty.sh --uninstall
 
   uninstall:task:
     desc: "Uninstall task"
-    cmd: ./scripts/install-task.sh uninstall
+    cmd: ./scripts/task.sh --uninstall
+
+  uninstall:chezmoi:
+    desc: "Uninstall chezmoi"
+    cmd: ./scripts/chezmoi.sh --uninstall
+
+  uninstall:prek:
+    desc: "Uninstall prek"
+    cmd: ./scripts/prek.sh --uninstall
 
   _chezmoi:
     internal: true
