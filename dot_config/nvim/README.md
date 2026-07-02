@@ -51,7 +51,7 @@ You can also run these manually:
 | **File management** | telescope.nvim, telescope-fzf-native.nvim, neo-tree.nvim |
 | **Git** | gitsigns.nvim, lazygit.nvim |
 | **Debugging / testing** | nvim-dap, nvim-dap-go, neotest, neotest-golang |
-| **Extras** | nvim-autopairs, nvim-surround, comment.nvim, neogen, markview.nvim, venv-selector.nvim, hardtime.nvim, toggleterm.nvim, lazydev.nvim |
+| **Extras** | nvim-autopairs, nvim-surround, comment.nvim, neogen, markview.nvim, hardtime.nvim, toggleterm.nvim, lazydev.nvim |
 | **AI** | windsurf.nvim (Codeium) |
 
 ## Known problems
