@@ -29,7 +29,7 @@ return {
 		keymap.set("n", "<leader>ch", toggle_inlay_hints, opts)
 
 		opts.desc = "Restart LSP"
-		keymap.set("n", "<leader>sr", "<cmd>LspRestart<CR>", opts) -- mapping to restart lsp if necessary
+		keymap.set("n", "<leader>sr", "<cmd>lsp restart<CR>", opts) -- mapping to restart lsp if necessary
 
 		local signs = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
 		for type, icon in pairs(signs) do
