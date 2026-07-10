@@ -18,6 +18,17 @@
       }
     },
     "headroom": {
+      "models": {
+        "Qwen3-Coder-Next-GGUF": {
+          "name": "Qwen3-Coder-Next-GGUF"
+        },
+        "Qwen3.6-35B-A3B-MTP-GGUF": {
+          "name": "Qwen3.6-35B-A3B-MTP-GGUF (local)"
+        },
+        "Qwen3.6-35B-A3B-MTP-ThinkingCoder": {
+          "name": "Qwen3.6-35B-A3B-MTP-ThinkingCoder (local)"
+        }
+      },
       "npm": "@ai-sdk/openai-compatible",
       "name": "Headroom Proxy",
       "options": {
