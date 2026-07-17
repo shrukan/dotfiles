@@ -15,6 +15,7 @@ rules:
         "chezmoi",
         "nvim",
         "alacritty",
+        "zellij",
       ],
     ]
   type-enum:
