@@ -1,0 +1,14 @@
+# Repository tooling — lives in the source dir but must never be applied to $HOME.
+# Patterns match the *target* path (relative to ~) and are anchored with a leading
+# "/" so they only match at the root: an unanchored "README.md" would also ignore
+# ~/.config/nvim/README.md.
+#
+# Source entries starting with "." (.git, .gitignore, .commitlintrc.yml, .claude)
+# are skipped by chezmoi itself and don't need listing here.
+
+/CLAUDE.md
+/README.md
+/Taskfile.yml
+/prek.toml
+/nvim-docker
+/scripts
