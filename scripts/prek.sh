@@ -18,6 +18,21 @@ command_exists() {
 
 # --- Main Script ---
 
+# Handle --uninstall flag
+if [[ "$1" == "--uninstall" ]]; then
+	echo "--- Prek Uninstallation Script ---"
+
+	if [ -f "$INSTALL_DIR/$PREK_BIN_NAME" ]; then
+		rm -f "$INSTALL_DIR/$PREK_BIN_NAME"
+		echo "Removed $INSTALL_DIR/$PREK_BIN_NAME"
+	else
+		echo "Prek binary not found in $INSTALL_DIR."
+	fi
+
+	echo "--- Prek Uninstallation Complete ---"
+	exit 0
+fi
+
 echo "--- Prek Installation Script ---"
 
 # 1. Check if prek is already installed

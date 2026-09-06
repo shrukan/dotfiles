@@ -5,22 +5,34 @@ version: "3"
 tasks:
   install:chezmoi:
     desc: "Install chezmoi via script"
-    cmd: ./scripts/install-chezmoi.sh
+    cmd: ./scripts/chezmoi.sh
 
   install:nvim:
     desc: "Install neovim from source via script"
     vars:
       VERSION: '{{.VERSION | default "stable"}}'
       INSTALL_PREFIX: '{{.INSTALL_PREFIX | default "/usr/local"}}'
-    cmd: ./scripts/install-neovim-from-source.sh {{.INSTALL_PREFIX}} {{.VERSION}}
+    cmd: ./scripts/nvim.sh {{.INSTALL_PREFIX}} {{.VERSION}}
 
   install:prek:
     desc: "Install prek via script for handling pre-commit hooks"
-    cmd: ./scripts/install-prek.sh
+    cmd: ./scripts/prek.sh
 
   install:alacritty:
     desc: "Install alacritty via script"
-    cmd: ./scripts/install-alacritty.sh
+    cmd: ./scripts/alacritty.sh
+
+  install:fonts:
+    desc: "Install configured fonts (list in README.md)"
+    cmd: ./scripts/fonts.sh
+
+  install:nvim-deps:
+    desc: "Install Neovim runtime dependencies"
+    cmd: ./scripts/nvim-deps.sh
+
+  install:zellij:
+    desc: "Install zellij via script"
+    cmd: ./scripts/zellij.sh
 
   install:zellij:
     desc: "Install zellij via script"
@@ -35,9 +47,32 @@ tasks:
       - task: install:alacritty
       - task: install:chezmoi
       - task: install:prek
+      - task: install:zellij
+      - task: install:nvim-deps
       - task: install:nvim
         vars:
           { VERSION: "{{.VERSION }}", INSTALL_PREFIX: "{{ .INSTALL_PREFIX }}" }
+      - task: install:fonts
+
+  uninstall:alacritty:
+    desc: "Uninstall alacritty"
+    cmd: ./scripts/alacritty.sh --uninstall
+
+  uninstall:task:
+    desc: "Uninstall task"
+    cmd: ./scripts/task.sh --uninstall
+
+  uninstall:chezmoi:
+    desc: "Uninstall chezmoi"
+    cmd: ./scripts/chezmoi.sh --uninstall
+
+  uninstall:prek:
+    desc: "Uninstall prek"
+    cmd: ./scripts/prek.sh --uninstall
+
+  uninstall:zellij:
+    desc: "Uninstall zellij"
+    cmd: ./scripts/zellij.sh --uninstall
 
   uninstall:zellij:
     desc: "Uninstalls Zellij"
@@ -64,6 +99,16 @@ tasks:
     cmds:
       - task: _chezmoi
         vars: { CLI_ARGS: "diff" }
+
+  add:
+    desc: "Import a file or directory into source"
+    requires:
+      vars:
+        - TARGET
+    cmds:
+      - task: _chezmoi
+        vars:
+          CLI_ARGS: "add {{.TARGET}}"
 
   docker:nvim:build:
     desc: "Build the Neovim Docker image"

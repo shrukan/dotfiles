@@ -17,6 +17,22 @@ command_exists() {
 
 # --- Main Script ---
 
+# Handle --uninstall flag
+if [[ "$1" == "--uninstall" ]]; then
+	echo "--- Chezmoi Uninstallation Script ---"
+
+	# 1. Remove binary
+	if [ -f "$INSTALL_DIR/$CHEZMOI_BIN_NAME" ]; then
+		rm -f "$INSTALL_DIR/$CHEZMOI_BIN_NAME"
+		echo "Removed $INSTALL_DIR/$CHEZMOI_BIN_NAME"
+	else
+		echo "Chezmoi binary not found in $INSTALL_DIR."
+	fi
+
+	echo "--- Chezmoi Uninstallation Complete ---"
+	exit 0
+fi
+
 echo "--- Chezmoi Installation Script ---"
 
 # 1. Check if chezmoi is already installed
