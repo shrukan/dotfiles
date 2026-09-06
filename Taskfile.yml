@@ -102,6 +102,13 @@ tasks:
         vars:
           CLI_ARGS: "add {{.TARGET}}"
 
+  add:nvim-lock:
+    desc: "Re-import the Lazy lockfile after :Lazy update/sync changes it"
+    cmds:
+      - task: _chezmoi
+        vars:
+          CLI_ARGS: "add {{.HOME}}/.config/nvim/lazy-lock.json"
+
   docker:nvim:build:
     desc: "Build the Neovim Docker image"
     cmds:
