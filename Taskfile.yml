@@ -32,7 +32,7 @@ tasks:
 
   install:zellij:
     desc: "Install zellij via script"
-    cmd: ./scripts/install-zellij.sh
+    cmd: ./scripts/zellij.sh
 
   install:all:
     desc: "Install all the dependencies via scripts"
@@ -43,6 +43,8 @@ tasks:
       - task: install:alacritty
       - task: install:chezmoi
       - task: install:prek
+      - task: install:zellij
+      - task: install:nvim-deps
       - task: install:nvim
         vars:
           { VERSION: "{{.VERSION }}", INSTALL_PREFIX: "{{ .INSTALL_PREFIX }}" }
@@ -65,8 +67,8 @@ tasks:
     cmd: ./scripts/prek.sh --uninstall
 
   uninstall:zellij:
-    desc: "Uninstalls Zellij"
-    cmd: ./scripts/install-zellij.sh uninstall
+    desc: "Uninstall zellij"
+    cmd: ./scripts/zellij.sh --uninstall
 
   _chezmoi:
     internal: true

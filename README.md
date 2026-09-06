@@ -7,6 +7,7 @@ This repository contains my personal configuration files (dotfiles) for various 
 * **Chezmoi Integration:** Seamless management and synchronization of dotfiles across systems.
 * **Neovim:** My fully customized neovim setup, see [README](dot_config/nvim/README.md).
 * **Alacritty:** Customized fast terminal emulator.
+* **Zellij:** Terminal multiplexer with vim-style keybindings.
 * **Scripts:** This repository provides bash scripts for installing dependencies, such as chezmoi, neovim, and fonts.
 * **Task:** For development and maintenance tasks, this repository uses [Task](https://taskfile.dev/#/).
 * **Dockerized Neovim:** An isolated Docker environment for Neovim, perfect for offline use, testing, or consistent development environments without polluting the host system.
@@ -97,6 +98,7 @@ All installation scripts follow a consistent pattern:
 | `./scripts/fonts.sh` | Install/uninstall configured fonts |
 | `./scripts/nvim-deps.sh` | Install/uninstall Neovim runtime dependencies (fzf, ripgrep, lazygit, Go, Node.js, uv, templ, tree-sitter-cli) |
 | `./scripts/nvim.sh [PREFIX] [VERSION]` | Install/uninstall neovim from source |
+| `./scripts/zellij.sh` | Install/uninstall zellij |
 | `./scripts/task.sh` | Install/uninstall task |
 
 ### Uninstalling
@@ -108,6 +110,7 @@ task uninstall:chezmoi
 task uninstall:prek
 task uninstall:alacritty
 task uninstall:task
+task uninstall:zellij
 ```
 
 For fonts and neovim, use the script directly:
