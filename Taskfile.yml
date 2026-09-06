@@ -30,6 +30,10 @@ tasks:
     desc: "Install Neovim runtime dependencies"
     cmd: ./scripts/nvim-deps.sh
 
+  install:zellij:
+    desc: "Install zellij via script"
+    cmd: ./scripts/install-zellij.sh
+
   install:all:
     desc: "Install all the dependencies via scripts"
     vars:
@@ -59,6 +63,10 @@ tasks:
   uninstall:prek:
     desc: "Uninstall prek"
     cmd: ./scripts/prek.sh --uninstall
+
+  uninstall:zellij:
+    desc: "Uninstalls Zellij"
+    cmd: ./scripts/install-zellij.sh uninstall
 
   _chezmoi:
     internal: true
