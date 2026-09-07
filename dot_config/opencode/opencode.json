@@ -1,0 +1,55 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "Lemonade": {
+      "models": {
+        "Qwen3.6-35B-A3B-MTP-GGUF": {
+          "name": "Qwen3.6-35B-A3B-MTP-GGUF (local)"
+        },
+        "Qwen3.6-35B-A3B-MTP-ThinkingCoder": {
+          "name": "Qwen3.6-35B-A3B-MTP-ThinkingCoder (local)"
+        }
+      },
+      "name": "Lemonade Server (local)",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "apiKey": "lemonade",
+        "baseURL": "http://127.0.0.1:13305/v1"
+      }
+    },
+    "headroom": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Headroom Proxy",
+      "options": {
+        "baseURL": "http://127.0.0.1:8787/v1"
+      }
+    }
+  },
+  "mcp": {
+    "headroom": {
+      "type": "local",
+      "command": ["/home/dirc/.local/bin/headroom", "mcp", "serve"],
+      "enabled": true,
+      "environment": {
+        "HEADROOM_PROXY_URL": "http://127.0.0.1:8787"
+      }
+    },
+    "serena": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--project-from-cwd",
+        "--context",
+        "agent",
+        "--open-web-dashboard",
+        "False"
+      ],
+      "enabled": true
+    }
+  },
+  "lsp": true
+}
