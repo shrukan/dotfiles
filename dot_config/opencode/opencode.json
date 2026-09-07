@@ -21,7 +21,8 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Headroom Proxy",
       "options": {
-        "baseURL": "http://127.0.0.1:8787/v1"
+        "apiKey": "lemonade",
+        "baseURL": "http://127.0.0.1:8790/v1"
       }
     }
   },
@@ -31,7 +32,7 @@
       "command": ["/home/dirc/.local/bin/headroom", "mcp", "serve"],
       "enabled": true,
       "environment": {
-        "HEADROOM_PROXY_URL": "http://127.0.0.1:8787"
+        "HEADROOM_PROXY_URL": "http://127.0.0.1:8790"
       }
     },
     "serena": {
