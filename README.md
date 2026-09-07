@@ -11,7 +11,7 @@ This repository contains my personal configuration files (dotfiles) for various 
 * **Scripts:** This repository provides bash scripts for installing dependencies, such as chezmoi, neovim, and fonts.
 * **Task:** For development and maintenance tasks, this repository uses [Task](https://taskfile.dev/#/).
 * **Dockerized Neovim:** An isolated Docker environment for Neovim, perfect for offline use, testing, or consistent development environments without polluting the host system.
-* **AI Tools:** Shell functions for Claude Code, OpenCode, and Crush with Headroom token compression and local models via Lemonade.
+* **AI Tools:** Shell functions for Claude Code, Codex CLI, OpenCode, and Crush with Headroom token compression and local models via Lemonade.
 
 ## Installation & Setup
 
@@ -147,6 +147,8 @@ Shell functions for AI coding assistants are provided in `dot_bashrc.d/ai-tools.
 |---|---|
 | `ai_claude_local()` | Claude Code with local Qwen model via Lemonade + Headroom compression |
 | `ai_claude_cloud()` | Claude Code with paid Anthropic API + Headroom compression |
+| `ai_codex_local()` | Codex CLI with local Qwen model via Lemonade + Headroom compression |
+| `ai_codex_cloud()` | Codex CLI with the paid OpenAI API / ChatGPT subscription + Headroom compression |
 | `ai_opencode_headroom()` | OpenCode with Headroom compression + Lemonade local model |
 | `ai_crush_local()` | Crush with local model + Headroom compression |
 | `ai_lemonade_restart()` | Restart the Lemonade systemd service |

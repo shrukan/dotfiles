@@ -1,6 +1,10 @@
+#!/bin/bash
+
 HEADROOM_PORT=8787
 LOCAL_HEADROOM_PORT=8790
+CODEX_HEADROOM_PORT=8791
 LEMONADE_URL=http://127.0.0.1:13305/v1
+CODEX_LOCAL_MODEL="${CODEX_LOCAL_MODEL:-Qwen3.6-35B-A3B-MTP-GGUF}"
 
 # Restart the lemonade server (managed via systemd)
 ai_lemonade_restart() {
@@ -51,6 +55,38 @@ ai_claude_local() {
 ai_claude_cloud() {
 	ai_headroom_restart_proxy "$HEADROOM_PORT"
 	headroom wrap claude --port "$HEADROOM_PORT" -- "$@"
+}
+
+# Codex CLI with local model, compressed via Headroom. Mirrors
+# ai_claude_local, with three Codex-specific wrinkles:
+#   * the upstream override is --openai-api-url, not ANTHROPIC_TARGET_API_URL --
+#     Codex speaks the OpenAI wire, and since 0.153 that means the Responses
+#     API only (`wire_api = "chat"` is a hard config error now). Lemonade
+#     serves /v1/responses, so the provider block `headroom wrap codex` writes
+#     into ~/.codex/config.toml works as-is.
+#   * the model has to be named explicitly: Codex would otherwise ask for
+#     gpt-5-codex, which Lemonade has never heard of. Override per-shell with
+#     CODEX_LOCAL_MODEL.
+#   * OPENAI_API_KEY is a placeholder bearer in case Codex or Headroom wants
+#     one on the way out; Lemonade ignores it. A real key already in the
+#     environment is left alone.
+# Runs on CODEX_HEADROOM_PORT rather than HEADROOM_PORT because `headroom wrap`
+# reclaims and re-points its own proxy, so codex and a live claude session would
+# otherwise keep restarting the same socket out from under each other.
+ai_codex_local() {
+	ai_lemonade_restart
+	ai_headroom_restart_proxy "$CODEX_HEADROOM_PORT" --openai-api-url "$LEMONADE_URL"
+	OPENAI_API_KEY="${OPENAI_API_KEY:-lemonade}" \
+		headroom wrap codex --port "$CODEX_HEADROOM_PORT" -- \
+		-c model="$CODEX_LOCAL_MODEL" "$@"
+}
+
+# Codex CLI against the paid OpenAI API / ChatGPT subscription, compressed via
+# Headroom. Auth stays whatever `codex login` set up; wrap only redirects the
+# base URL.
+ai_codex_cloud() {
+	ai_headroom_restart_proxy "$CODEX_HEADROOM_PORT"
+	headroom wrap codex --port "$CODEX_HEADROOM_PORT" -- "$@"
 }
 
 # OpenCode: restarts Headroom pointed at Lemonade (the only local target
