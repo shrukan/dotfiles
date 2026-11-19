@@ -38,7 +38,10 @@ return {
 				return not vim.tbl_contains(alreadyInstalled, parser)
 			end)
 			:totable()
-		require("nvim-treesitter").install(parsersToInstall):wait(300000)
+		-- offline a missing parser is skipped instead of waiting on a download
+		if not vim.g.offline and #parsersToInstall > 0 then
+			require("nvim-treesitter").install(parsersToInstall):wait(300000)
+		end
 
 		vim.api.nvim_create_autocmd("FileType", {
 			callback = function()

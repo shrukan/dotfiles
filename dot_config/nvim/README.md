@@ -20,6 +20,12 @@ These must be installed on your system before the config will work fully:
 | `make` + `gcc`/`clang` | telescope-fzf-native.nvim build step |
 
 All LSP servers, formatters, linters, and debuggers are installed automatically by Mason on first launch.
+Exception: gopls, golangci-lint and delve are skipped when they are already on `PATH` outside Mason
+(the nvim-docker image builds them with its own Go). They must be built with a Go at least as new as
+the `go` directive of the project you edit.
+
+With `NVIM_OFFLINE=1` nothing is downloaded: no plugin installs or update checks, no Mason runs,
+no Tree-sitter installs, and windsurf is not loaded.
 
 ### Neovim setup
 

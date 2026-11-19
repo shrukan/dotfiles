@@ -1,5 +1,7 @@
 return {
 	"Exafunction/windsurf.nvim",
+	-- needs the Codeium service; offline it would only fail on every keystroke
+	cond = not vim.g.offline,
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		"hrsh7th/nvim-cmp",

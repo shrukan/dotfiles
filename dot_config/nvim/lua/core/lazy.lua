@@ -31,8 +31,11 @@ require("lazy").setup({
 		{ import = "plugins.dap" },
 		{ import = "plugins" },
 	},
+	install = {
+		missing = not vim.g.offline,
+	},
 	checker = {
-		enabled = true,
+		enabled = not vim.g.offline,
 		notify = false,
 	},
 })

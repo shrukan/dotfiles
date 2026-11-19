@@ -21,8 +21,22 @@ return {
 			return vim.fn.executable("go") == 1
 		end
 
-		local has_temple = function()
-			return vim.fn.executable("temple") == 1
+		-- true when bin is on PATH from outside Mason, e.g. built into the
+		-- nvim-docker image with the image's Go; Mason then leaves it alone
+		local mason_bin = vim.fn.stdpath("data") .. "/mason/bin"
+		local from_system = function(bin)
+			local path = vim.fn.exepath(bin)
+			return path ~= "" and not vim.startswith(path, mason_bin)
+		end
+
+		local go_tool = function(bin)
+			return function()
+				return has_go() and not from_system(bin)
+			end
+		end
+
+		local has_templ = function()
+			return vim.fn.executable("templ") == 1
 		end
 
 		local has_python = function()
@@ -42,9 +56,9 @@ return {
 			ensure_installed = {
 				-- lsp
 				"lua-language-server",
-				{ "gopls", condition = has_go },
+				{ "gopls", condition = go_tool("gopls") },
 				{ "zuban", condition = has_python },
-				{ "templ", condition = has_temple },
+				{ "templ", condition = has_templ },
 				"typescript-language-server",
 				"angular-language-server",
 				"html-lsp",
@@ -72,15 +86,16 @@ return {
 				"checkmake", -- makefile
 
 				-- formatter/linters
-				{ "golangci-lint", condition = has_go },
+				{ "golangci-lint", condition = go_tool("golangci-lint") },
 				{ "ruff", condition = has_python },
 				"rumdl", -- markdown
 
 				-- debuggers
-				"delve",
+				{ "delve", condition = go_tool("dlv") },
 			},
 
-			automatic_installation = true,
+			-- offline there is nothing to install from; the image ships the tools
+			run_on_start = not vim.g.offline,
 		})
 	end,
 }
