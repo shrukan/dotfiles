@@ -169,7 +169,7 @@ Build with a `GO_VERSION` at least as new as every project you open:
 task docker:nvim:build GO_VERSION=1.27.3
 ```
 
-**On the online machine**
+### On the online machine
 
 ```bash
 task docker:nvim:build
@@ -196,26 +196,76 @@ cd ~/src/workspace/myproject
 `GONOPROXY`, `GOTOOLCHAIN` and `CGO_ENABLED` when they are set; unset ones keep
 the image defaults (`GOPROXY=off`, `GOSUMDB=off`, `GOTOOLCHAIN=local`). So:
 
-- with an internal module proxy, export `GOPROXY` (and `GONOSUMDB`/`GOPRIVATE`
+* with an internal module proxy, export `GOPROXY` (and `GONOSUMDB`/`GOPRIVATE`
   as your setup needs) before calling `run.sh`;
-- with a vendored source bundle, source its environment file first, so
+* with a vendored source bundle, source its environment file first, so
   `GOFLAGS=-mod=vendor` and `GOWORK` reach the container. `GOWORK` must point
   inside the mounted workspace. `GOROOT` and `PATH` are not forwarded; the
   image brings its own Go, which must be at least the bundle's Go version.
 
-The host module cache is mounted when it exists (`GOMODCACHE_HOST`, else
-`go env GOMODCACHE`). The host's CA bundle is mounted too, so a proxy or git
-server signed by an in-house CA is trusted.
-
 `run.sh --help` lists its options; the `docker:nvim:run`, `shell` and
 `test-offline` tasks call it.
 
-The Go build, gopls and golangci-lint caches live in the `nvim-env-cache`
-volume, so only the first start pays a cold workspace load (several GB for
-gopls on a large workspace). Removing the volume is always safe. The
-container runs with `--init`, which reaps orphaned processes; without it they
-pile up as zombies until Go can no longer create threads.
+**As `nvim` everywhere.** Installed under the name `nvim`, the script passes
+every argument to nvim in the container, so the shell, git and `$EDITOR` all
+use it. Files outside the workspace are refused instead of opening an empty
+buffer whose save would be lost with the container.
 
-The ssh agent (`SSH_AUTH_SOCK`) and `~/.ssh/known_hosts` are forwarded for git.
+```bash
+install -m 755 run.sh ~/.local/bin/nvim
+echo 'export NVIM_ENV_WORKSPACE=~/src/workspace' >> ~/.bashrc   # dir holding go.work
+echo 'export NVIM_ENV_OFFLINE=1' >> ~/.bashrc                   # optional: no network
+source ~/.bashrc
+```
+
+### What the container can see
+
+Everything that runs in the container can use what is listed here, including
+code you did not write: plugins, npm-based language servers, Mason binaries.
+`run.sh` therefore passes in only what editing, building and git need.
+
+| From the host | In the container | Access | Why |
+| --- | --- | --- | --- |
+| The workspace (`--workspace`) | same absolute path | read-write | the files you edit; relative `go.work` paths resolve |
+| Go module cache, if it exists (`GOMODCACHE_HOST`, else `go env GOMODCACHE`) | `/root/go/pkg/mod` | read-write | modules without downloading them |
+| `nvim-env-cache` volume (not a host directory) | `/root/.cache` | read-write, kept across runs | Go build, gopls and golangci-lint caches |
+| ssh agent (`SSH_AUTH_SOCK`) | `/ssh-agent` | can sign with the keys, cannot read them | git over ssh |
+| `~/.ssh/config`, `known_hosts`, `*.pub` | `/root/.ssh/` | read-only | host aliases, ports, host keys, which key to use |
+| `~/.gitconfig`, `~/.config/git` | `/root/` | read-only | name and email for commits |
+| Host CA bundle (`SSL_CERT_FILE`, else the system one) | `/etc/ssl/certs/ca-certificates.crt`, also set as `SSL_CERT_FILE` and `NODE_EXTRA_CA_CERTS` | read-only | Go, git, curl, Node and Python tools trust an in-house proxy or git server |
+| Go variables (`GOPROXY`, `GOFLAGS`, `GOWORK`, ... see above), `TERM`, `COLORTERM` | environment | — | module source, colours |
+
+**Not visible:** the rest of your home directory, so private ssh keys, shell
+history, browser data and other credentials; files outside the workspace
+(`nvim` refuses them); every other environment variable, `GOROOT` and `PATH`
+included. The image contains none of this either, so `nvim-env.tar.gz` can be
+copied around without leaking anything.
+
+**What follows from it:**
+
+* Code in the container can read and change the workspace, like any editor
+  plugin on the host can.
+* While the container runs, it can *use* your ssh keys through the agent, but
+  never copy them. `ssh-add -c` makes the agent ask before every use, so
+  nothing can use a key unnoticed.
+* `~/.gitconfig` must not hold credentials (tokens in `url.*.insteadOf`, the
+  `store` credential helper), since it is readable inside.
+* The CA bundle holds only public root certificates, no secrets. It decides
+  which servers the container trusts, so it is exactly the trust of the host.
+  Client certificates (mutual TLS) are not passed in; a proxy that requires
+  one is not reachable from the container.
+
+**Git over ssh.** The agent must hold the keys: load them once per session
+with `ssh-add` (or set `AddKeysToAgent yes` in `~/.ssh/config`).
+`Permission denied (publickey)` in the container means the agent is missing
+or empty; check with `ssh-add -l`. New host keys cannot be saved from inside
+(`known_hosts` is read-only); connect once from the host.
+
+**Process and memory.** The container runs with `--init`, which reaps
+orphaned processes; without it they pile up as zombies until Go can no longer
+create threads. Thanks to the cache volume only the first start pays a cold
+workspace load (several GB for gopls on a large workspace); removing the
+volume is always safe.
+
 With rootless podman, files the container writes stay yours; with rootful
 docker they are owned by root.

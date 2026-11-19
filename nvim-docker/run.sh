@@ -11,8 +11,15 @@
 #
 # Options:
 #   --offline         run without network (--network none), as on an airgapped system
-#   --workspace DIR   directory to mount (default: current directory)
+#   --workspace DIR   directory to mount (default: NVIM_ENV_WORKSPACE, else the
+#                     current directory)
 #   --image NAME      image to run (default: nvim-env)
+#
+# Installed under the name nvim (e.g. ~/.local/bin/nvim), every argument goes
+# to nvim in the container, so it replaces nvim for the shell, git and $EDITOR;
+# set NVIM_ENV_WORKSPACE to the directory holding go.work.
+# Files given to nvim must lie inside the workspace: anything else is refused,
+# since the container cannot see it and a save would be lost with the container.
 #
 # Go environment:
 #   The Go settings of the calling shell are forwarded when set: GOPROXY,
@@ -24,12 +31,17 @@
 #   GOWORK must point inside the workspace.
 #
 # Other environment:
+#   NVIM_ENV_WORKSPACE  default workspace
+#   NVIM_ENV_OFFLINE    1 behaves like --offline
 #   GOMODCACHE_HOST   Go module cache to mount (default: go env GOMODCACHE, else
 #                     ~/go/pkg/mod); skipped when the directory does not exist
 #   CONTAINER_ENGINE  podman or docker (default: podman when installed)
 #
-# Also forwarded: the ssh agent (SSH_AUTH_SOCK) and ~/.ssh/known_hosts for git,
-# and the host's CA bundle (SSL_CERT_FILE, else the system bundle), so an
+# Also forwarded, for git: the ssh agent (SSH_AUTH_SOCK), which must hold the
+# keys (ssh-add); from ~/.ssh only config, known_hosts and *.pub, read-only, so
+# host aliases, ports and IdentityFile entries work without private key files;
+# the git config (~/.gitconfig, ~/.config/git) for name and email; and the
+# host's CA bundle (SSL_CERT_FILE, else the system bundle), so an
 # internal proxy or git server signed by an in-house CA is trusted.
 # With rootless podman, container root is you, so files written stay yours.
 
@@ -41,8 +53,13 @@ usage() {
 }
 
 offline=false
-workspace="$PWD"
+[ "${NVIM_ENV_OFFLINE:-}" = 1 ] && offline=true
+workspace="${NVIM_ENV_WORKSPACE:-$PWD}"
 image="nvim-env"
+
+if [ "$(basename "$0")" = nvim ]; then
+	set -- -- nvim "$@"
+fi
 
 while [ $# -gt 0 ]; do
 	case "$1" in
@@ -73,6 +90,37 @@ case "$here/" in
 "$workspace"/*) workdir="$here" ;;
 *) workdir="$workspace" ;;
 esac
+
+# Refuse file arguments of nvim that the container cannot see. Options and the
+# values of options that take one are skipped; relative paths resolve against
+# the current directory, as nvim on the host would.
+if [ "$1" = nvim ]; then
+	skip_next=false
+	for a in "${@:2}"; do
+		if $skip_next; then
+			skip_next=false
+			continue
+		fi
+		case "$a" in
+		-c | --cmd | -u | -i | -S | -s | -w | -W | -t | -q | --listen | --startuptime)
+			skip_next=true
+			continue
+			;;
+		-* | +*) continue ;;
+		/*) p="$a" ;;
+		*) p="$here/$a" ;;
+		esac
+		p="$(realpath -m "$p")"
+		case "$p/" in
+		"$workspace"/*) ;;
+		*)
+			echo "nvim-env: $a is outside the workspace $workspace; the container cannot see it" >&2
+			echo "nvim-env: use the host's nvim for it, or set NVIM_ENV_WORKSPACE / --workspace" >&2
+			exit 1
+			;;
+		esac
+	done
+fi
 
 engine="${CONTAINER_ENGINE:-}"
 if [ -z "$engine" ]; then
@@ -121,14 +169,31 @@ if $offline; then args+=(--network none); fi
 if [ -n "${SSH_AUTH_SOCK:-}" ] && [ -S "$SSH_AUTH_SOCK" ]; then
 	args+=(-v "$SSH_AUTH_SOCK:/ssh-agent" -e SSH_AUTH_SOCK=/ssh-agent)
 fi
-if [ -f "$HOME/.ssh/known_hosts" ]; then
-	args+=(-v "$HOME/.ssh/known_hosts:/root/.ssh/known_hosts:ro")
+# Only the public parts of ~/.ssh: private keys stay in the agent, so code
+# running in the container can use them while it runs but never read them.
+# IdentityFile entries keep working through their .pub files.
+for f in "$HOME"/.ssh/config "$HOME"/.ssh/known_hosts "$HOME"/.ssh/*.pub; do
+	if [ -f "$f" ]; then
+		args+=(-v "$f:/root/.ssh/$(basename "$f"):ro")
+	fi
+done
+if [ -f "$HOME/.gitconfig" ]; then
+	args+=(-v "$HOME/.gitconfig:/root/.gitconfig:ro")
+fi
+if [ -d "$HOME/.config/git" ]; then
+	args+=(-v "$HOME/.config/git:/root/.config/git:ro")
 fi
 if [ -d "$modcache" ]; then
 	args+=(-v "$modcache:/root/go/pkg/mod")
 fi
+# Go, git and curl read the system path; Node and Python tools keep their own
+# lists unless pointed at it.
 if [ -n "$cabundle" ] && [ -f "$cabundle" ]; then
-	args+=(-v "$(readlink -f "$cabundle"):/etc/ssl/certs/ca-certificates.crt:ro")
+	args+=(
+		-v "$(readlink -f "$cabundle"):/etc/ssl/certs/ca-certificates.crt:ro"
+		-e SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+		-e NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+	)
 fi
 for v in GOPROXY GOSUMDB GOFLAGS GOWORK GOPRIVATE GONOSUMDB GONOPROXY GOTOOLCHAIN CGO_ENABLED; do
 	if [ -n "${!v+x}" ]; then args+=(-e "$v=${!v}"); fi
