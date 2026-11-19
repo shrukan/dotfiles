@@ -153,3 +153,45 @@ Shell functions for AI coding assistants are provided in `dot_bashrc.d/ai-tools.
 | `ai_crush_local()` | Crush with local model + Headroom compression |
 | `ai_lemonade_restart()` | Restart the Lemonade systemd service |
 | `ai_headroom_restart_proxy()` | Restart the Headroom compression proxy |
+
+## Dockerized Neovim (airgapped use)
+
+The image in `nvim-docker/` holds Neovim, the config, all plugins, Mason tools,
+Tree-sitter parsers and the Go tools. It uses podman when installed, docker otherwise.
+Inside, `NVIM_OFFLINE=1` stops every download, and `GOTOOLCHAIN=local` and
+`GOPROXY=off` make a missing Go toolchain or module an immediate error.
+
+**Go version.** gopls, golangci-lint and delve are built with the image's Go,
+and they can only analyse code whose `go` directive is not newer than that.
+Build with a `GO_VERSION` at least as new as every project you open:
+
+```bash
+task docker:nvim:build GO_VERSION=1.27.3
+```
+
+**On the online machine**
+
+```bash
+task docker:nvim:build
+task docker:nvim:save                                   # -> nvim-env.tar.gz
+task docker:nvim:modcache WORKSPACE=~/src/workspace     # -> gomodcache.tar.gz
+task docker:nvim:test-offline WORKSPACE=~/src/workspace # check with --network none
+```
+
+`WORKSPACE` is the directory holding `go.work` (or the project's `go.mod`). It is
+mounted at the same absolute path, so relative `go.work` paths resolve.
+Run the tasks from inside the project (`task -d ~/.dotfiles ...`) so the
+container starts there.
+
+**On the airgapped machine**
+
+```bash
+task docker:nvim:load
+mkdir -p ~/gomodcache && tar -xzf gomodcache.tar.gz -C ~/gomodcache
+GOMODCACHE_HOST=~/gomodcache task docker:nvim:run WORKSPACE=~/src/workspace
+```
+
+The ssh agent (`SSH_AUTH_SOCK`) and `~/.ssh/known_hosts` are forwarded for git.
+With an internal Go module proxy, set `GOPROXY_OVERRIDE=https://...` instead of
+carrying the module cache. With rootless podman, files the container writes stay
+yours; with rootful docker they are owned by root.

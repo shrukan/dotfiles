@@ -110,16 +110,108 @@ tasks:
           CLI_ARGS: "add {{.HOME}}/.config/nvim/lazy-lock.json"
 
   docker:nvim:build:
-    desc: "Build the Neovim Docker image"
+    desc: "Build the Neovim Docker image (GO_VERSION=x.y.z to match your projects)"
+    vars:
+      GO_VERSION: '{{.GO_VERSION | default "1.27.3"}}'
     cmds:
-      - docker build -t nvim-env -f nvim-docker/Dockerfile .
+      - task: _container
+        vars:
+          CLI_ARGS: build --build-arg GO_VERSION={{.GO_VERSION}} -t nvim-env -f nvim-docker/Dockerfile .
 
   docker:nvim:run:
-    desc: "Run the Neovim Docker container"
+    desc: "Run Neovim in the container (WORKSPACE=dir holding go.work, default: current dir)"
     cmds:
-      - docker run -it --rm -v {{.USER_WORKING_DIR}}:/root/workspace nvim-env {{.CLI_ARGS}}
+      - task: _nvim_container
+        vars:
+          CMD: nvim {{.CLI_ARGS}}
+          WORKSPACE: "{{.WORKSPACE}}"
+          NETWORK: "{{.NETWORK}}"
 
   docker:nvim:shell:
-    desc: "Run a shell inside the Neovim Docker container for debugging/exploration"
+    desc: "Run a shell inside the Neovim container for debugging/exploration"
     cmds:
-      - docker run -it --rm -v {{.USER_WORKING_DIR}} nvim-env /bin/bash
+      - task: _nvim_container
+        vars:
+          CMD: /bin/bash
+          WORKSPACE: "{{.WORKSPACE}}"
+          NETWORK: "{{.NETWORK}}"
+
+  docker:nvim:test-offline:
+    desc: "Run Neovim in the container without network, as on the airgapped system"
+    cmds:
+      - task: _nvim_container
+        vars:
+          CMD: nvim {{.CLI_ARGS}}
+          WORKSPACE: "{{.WORKSPACE}}"
+          NETWORK: none
+
+  docker:nvim:save:
+    desc: "Export the image to nvim-env.tar.gz for the airgapped system"
+    cmds:
+      - task: _container
+        vars:
+          CLI_ARGS: save nvim-env | gzip > nvim-env.tar.gz
+
+  docker:nvim:load:
+    desc: "Import nvim-env.tar.gz on the airgapped system"
+    cmds:
+      - gunzip -c nvim-env.tar.gz | {{.ENGINE}} load
+    vars:
+      ENGINE:
+        sh: command -v podman >/dev/null && echo podman || echo docker
+
+  docker:nvim:modcache:
+    desc: "Download every module of WORKSPACE and pack the Go module cache to gomodcache.tar.gz"
+    requires:
+      vars:
+        - WORKSPACE
+    vars:
+      GOMODCACHE_HOST:
+        sh: go env GOMODCACHE
+    cmds:
+      - cd "{{.WORKSPACE}}" && go mod download all
+      - tar -czf gomodcache.tar.gz -C "{{.GOMODCACHE_HOST}}" .
+
+  _container:
+    internal: true
+    vars:
+      ENGINE:
+        sh: command -v podman >/dev/null && echo podman || echo docker
+    cmds:
+      - "{{.ENGINE}} {{.CLI_ARGS}}"
+
+  # Mounts WORKSPACE at its own absolute path, so go.work, gopls and error
+  # messages see the same paths as on the host. The Go module cache comes from
+  # GOMODCACHE_HOST (on the airgapped system: the unpacked gomodcache.tar.gz).
+  # Rootless podman maps container root to you, so written files stay yours.
+  _nvim_container:
+    internal: true
+    vars:
+      ENGINE:
+        sh: command -v podman >/dev/null && echo podman || echo docker
+      WORKSPACE: '{{.WORKSPACE | default .USER_WORKING_DIR}}'
+      GOMODCACHE_HOST:
+        sh: '[ -n "$GOMODCACHE_HOST" ] && echo "$GOMODCACHE_HOST" || go env GOMODCACHE 2>/dev/null || echo "$HOME/go/pkg/mod"'
+    cmds:
+      - |
+        set -e
+        args=(
+          -it --rm
+          --security-opt label=disable
+          -v "{{.WORKSPACE}}:{{.WORKSPACE}}"
+          -w "{{.USER_WORKING_DIR}}"
+          -v "{{.GOMODCACHE_HOST}}:/root/go/pkg/mod"
+          -v nvim-env-gocache:/root/.cache/go-build
+          -e TERM -e COLORTERM
+        )
+        {{if .NETWORK}}args+=(--network "{{.NETWORK}}"){{end}}
+        if [ -n "${SSH_AUTH_SOCK:-}" ]; then
+          args+=(-v "$SSH_AUTH_SOCK:/ssh-agent" -e SSH_AUTH_SOCK=/ssh-agent)
+        fi
+        if [ -f "$HOME/.ssh/known_hosts" ]; then
+          args+=(-v "$HOME/.ssh/known_hosts:/root/.ssh/known_hosts:ro")
+        fi
+        if [ -n "${GOPROXY_OVERRIDE:-}" ]; then
+          args+=(-e GOPROXY="$GOPROXY_OVERRIDE" -e GOSUMDB=off)
+        fi
+        {{.ENGINE}} run "${args[@]}" nvim-env {{.CMD}}
