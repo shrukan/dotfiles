@@ -1,0 +1,17 @@
+proxy:
+  host: 127.0.0.1
+  port: 8787
+
+upstream:
+  openai:
+    base_url: http://127.0.0.1:13305/v1
+
+compression:
+  enabled: true
+
+cache:
+  enabled: true
+
+logging:
+  enabled: true
+  file: ~/.local/share/headroom/headroom.jsonl
