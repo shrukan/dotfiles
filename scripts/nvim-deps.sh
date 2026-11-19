@@ -8,20 +8,21 @@ set -e
 
 # Debian/Ubuntu runtime packages
 DEBIAN_RUNTIME_DEPS=(
-	curl tar fzf ripgrep tree git xclip tzdata openssh-client
+	curl tar unzip fzf ripgrep tree git xclip tzdata openssh-client
 )
 
 # RPM-based runtime packages
 RPM_RUNTIME_DEPS=(
-	curl tar fzf ripgrep tree git xclip tzdata openssh-client
+	curl tar unzip fzf ripgrep tree git xclip tzdata openssh-client
 )
 
 # Tool versions (keep in sync with Dockerfile)
 # Can be overridden via environment variables (used by Dockerfile)
-GO_VERSION="${GO_VERSION:-1.26.0}"
+GO_VERSION="${GO_VERSION:-1.27.3}"
 NODE_VERSION="${NODE_VERSION:-24.0.0}"
 LAZYGIT_VERSION="${LAZYGIT_VERSION:-0.62.2}"
 TEMPL_VERSION="${TEMPL_VERSION:-0.3.1001}"
+TREE_SITTER_VERSION="${TREE_SITTER_VERSION:-0.27.2}"
 
 # --- Functions ---
 
@@ -64,8 +65,10 @@ install_node() {
 		return
 	fi
 	echo "Installing Node.js v${NODE_VERSION}..."
+	# the archive holds bin/, lib/, include/ and share/, so it unpacks into the prefix
 	curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" |
-		tar -xJ --strip-components=1 -C /usr/local/bin
+		run_as_sudo tar -xJ --strip-components=1 -C /usr/local \
+			--wildcards '*/bin/*' '*/lib/*' '*/include/*' '*/share/*'
 }
 
 install_lazygit() {
@@ -103,13 +106,19 @@ install_templ() {
 		rm templ templ.tar.gz
 }
 
+# nvim-treesitter requires the release binary, not the npm package
 install_tree_sitter_cli() {
-	if command_exists tree-sitter; then
-		echo "tree-sitter-cli is already installed."
+	if command_exists tree-sitter && tree-sitter --version | grep -q " ${TREE_SITTER_VERSION}\b"; then
+		echo "tree-sitter-cli v${TREE_SITTER_VERSION} is already installed."
 		return
 	fi
-	echo "Installing tree-sitter-cli..."
-	npm i -g tree-sitter-cli
+	echo "Installing tree-sitter-cli v${TREE_SITTER_VERSION}..."
+	local tmp
+	tmp="$(mktemp -d)"
+	curl -fsSLo "$tmp/tree-sitter.zip" "https://github.com/tree-sitter/tree-sitter/releases/download/v${TREE_SITTER_VERSION}/tree-sitter-cli-linux-x64.zip"
+	unzip -q "$tmp/tree-sitter.zip" -d "$tmp"
+	run_as_sudo install "$tmp/tree-sitter" /usr/local/bin/tree-sitter
+	rm -rf "$tmp"
 }
 
 # --- Uninstall functions ---
@@ -132,8 +141,9 @@ uninstall_go() {
 }
 
 uninstall_node() {
-	echo "Removing Node.js from /usr/local/bin..."
-	run_as_sudo rm -f /usr/local/bin/node /usr/local/bin/nodejs /usr/local/bin/npm /usr/local/bin/npx
+	echo "Removing Node.js from /usr/local..."
+	run_as_sudo rm -f /usr/local/bin/node /usr/local/bin/nodejs /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
+	run_as_sudo rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /usr/local/include/node
 }
 
 uninstall_lazygit() {
@@ -157,7 +167,7 @@ uninstall_templ() {
 uninstall_tree_sitter_cli() {
 	if command_exists tree-sitter; then
 		echo "Removing tree-sitter-cli..."
-		sudo npm uninstall -g tree-sitter-cli
+		run_as_sudo rm -f /usr/local/bin/tree-sitter
 	else
 		echo "tree-sitter-cli not found, skipping."
 	fi
