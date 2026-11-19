@@ -1,3 +1,6 @@
 # AI related tools
 /.serena
 /.tokensave
+
+# exported nvim-docker image (task docker:nvim:save)
+/nvim-env.tar.gz
