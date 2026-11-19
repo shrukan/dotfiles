@@ -180,38 +180,11 @@ tasks:
     cmds:
       - "{{.ENGINE}} {{.CLI_ARGS}}"
 
-  # Mounts WORKSPACE at its own absolute path, so go.work, gopls and error
-  # messages see the same paths as on the host. The Go module cache comes from
-  # GOMODCACHE_HOST (on the airgapped system: the unpacked gomodcache.tar.gz).
-  # Rootless podman maps container root to you, so written files stay yours.
+  # The mounts and environment are documented in nvim-docker/run.sh.
   _nvim_container:
     internal: true
+    dir: "{{.USER_WORKING_DIR}}"
     vars:
-      ENGINE:
-        sh: command -v podman >/dev/null && echo podman || echo docker
       WORKSPACE: '{{.WORKSPACE | default .USER_WORKING_DIR}}'
-      GOMODCACHE_HOST:
-        sh: '[ -n "$GOMODCACHE_HOST" ] && echo "$GOMODCACHE_HOST" || go env GOMODCACHE 2>/dev/null || echo "$HOME/go/pkg/mod"'
     cmds:
-      - |
-        set -e
-        args=(
-          -it --rm
-          --security-opt label=disable
-          -v "{{.WORKSPACE}}:{{.WORKSPACE}}"
-          -w "{{.USER_WORKING_DIR}}"
-          -v "{{.GOMODCACHE_HOST}}:/root/go/pkg/mod"
-          -v nvim-env-gocache:/root/.cache/go-build
-          -e TERM -e COLORTERM
-        )
-        {{if .NETWORK}}args+=(--network "{{.NETWORK}}"){{end}}
-        if [ -n "${SSH_AUTH_SOCK:-}" ]; then
-          args+=(-v "$SSH_AUTH_SOCK:/ssh-agent" -e SSH_AUTH_SOCK=/ssh-agent)
-        fi
-        if [ -f "$HOME/.ssh/known_hosts" ]; then
-          args+=(-v "$HOME/.ssh/known_hosts:/root/.ssh/known_hosts:ro")
-        fi
-        if [ -n "${GOPROXY_OVERRIDE:-}" ]; then
-          args+=(-e GOPROXY="$GOPROXY_OVERRIDE" -e GOSUMDB=off)
-        fi
-        {{.ENGINE}} run "${args[@]}" nvim-env {{.CMD}}
+      - '"{{.ROOT_DIR}}/nvim-docker/run.sh" {{if eq .NETWORK "none"}}--offline{{end}} --workspace "{{.WORKSPACE}}" -- {{.CMD}}'

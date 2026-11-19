@@ -183,13 +183,18 @@ mounted at the same absolute path, so relative `go.work` paths resolve.
 Run the tasks from inside the project (`task -d ~/.dotfiles ...`) so the
 container starts there.
 
-**On the airgapped machine**
+**On the airgapped machine** only `nvim-env.tar.gz`, `gomodcache.tar.gz` and
+`nvim-docker/run.sh` are needed; neither task nor this repository:
 
 ```bash
-task docker:nvim:load
+gunzip -c nvim-env.tar.gz | podman load        # or: task docker:nvim:load
 mkdir -p ~/gomodcache && tar -xzf gomodcache.tar.gz -C ~/gomodcache
-GOMODCACHE_HOST=~/gomodcache task docker:nvim:run WORKSPACE=~/src/workspace
+cd ~/src/workspace/myproject
+GOMODCACHE_HOST=~/gomodcache ./run.sh --workspace ~/src/workspace
 ```
+
+`run.sh --help` lists its options; the `docker:nvim:run`, `shell` and
+`test-offline` tasks call it.
 
 The ssh agent (`SSH_AUTH_SOCK`) and `~/.ssh/known_hosts` are forwarded for git.
 With an internal Go module proxy, set `GOPROXY_OVERRIDE=https://...` instead of
