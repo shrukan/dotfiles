@@ -196,6 +196,12 @@ GOMODCACHE_HOST=~/gomodcache ./run.sh --workspace ~/src/workspace
 `run.sh --help` lists its options; the `docker:nvim:run`, `shell` and
 `test-offline` tasks call it.
 
+The Go build, gopls and golangci-lint caches live in the `nvim-env-cache`
+volume, so only the first start pays a cold workspace load (several GB for
+gopls on a large workspace). Removing the volume is always safe. The
+container runs with `--init`, which reaps orphaned processes; without it they
+pile up as zombies until Go can no longer create threads.
+
 The ssh agent (`SSH_AUTH_SOCK`) and `~/.ssh/known_hosts` are forwarded for git.
 With an internal Go module proxy, set `GOPROXY_OVERRIDE=https://...` instead of
 carrying the module cache. With rootless podman, files the container writes stay

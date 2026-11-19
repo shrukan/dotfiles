@@ -80,13 +80,18 @@ if [ ! -d "$modcache" ]; then
 	exit 1
 fi
 
+# --init: nvim does not reap orphaned processes, so as PID 1 it collects
+# zombies until the container's pids limit stops Go from creating threads.
+# nvim-env-cache keeps the Go build, gopls and golangci-lint caches across
+# runs; a cold gopls load of a large workspace costs about ten times the memory.
 args=(
 	--rm
+	--init
 	--security-opt label=disable
 	-v "$workspace:$workspace"
 	-w "$workdir"
 	-v "$modcache:/root/go/pkg/mod"
-	-v nvim-env-gocache:/root/.cache/go-build
+	-v nvim-env-cache:/root/.cache
 	-e TERM -e COLORTERM
 )
 # a terminal only when there is one, so the script also runs from scripts and CI
