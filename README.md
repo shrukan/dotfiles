@@ -154,12 +154,12 @@ Shell functions for AI coding assistants are provided in `dot_bashrc.d/ai-tools.
 | `ai_lemonade_restart()` | Restart the Lemonade systemd service |
 | `ai_headroom_restart_proxy()` | Restart the Headroom compression proxy |
 
-## Dockerized Neovim (airgapped use)
+## Dockerized Neovim (offline)
 
 The image in `nvim-docker/` holds Neovim, the config, all plugins, Mason tools,
 Tree-sitter parsers and the Go tools. It uses podman when installed, docker otherwise.
-Inside, `NVIM_OFFLINE=1` stops every download, and `GOTOOLCHAIN=local` and
-`GOPROXY=off` make a missing Go toolchain or module an immediate error.
+Inside, `NVIM_OFFLINE=1` stops every download. Go modules are not part of the
+image: the container uses whatever Go setup the calling shell has (see below).
 
 **Go version.** gopls, golangci-lint and delve are built with the image's Go,
 and they can only analyse code whose `go` directive is not newer than that.
@@ -174,7 +174,6 @@ task docker:nvim:build GO_VERSION=1.27.3
 ```bash
 task docker:nvim:build
 task docker:nvim:save                                   # -> nvim-env.tar.gz
-task docker:nvim:modcache WORKSPACE=~/src/workspace     # -> gomodcache.tar.gz
 task docker:nvim:test-offline WORKSPACE=~/src/workspace # check with --network none
 ```
 
@@ -183,15 +182,30 @@ mounted at the same absolute path, so relative `go.work` paths resolve.
 Run the tasks from inside the project (`task -d ~/.dotfiles ...`) so the
 container starts there.
 
-**On the airgapped machine** only `nvim-env.tar.gz`, `gomodcache.tar.gz` and
-`nvim-docker/run.sh` are needed; neither task nor this repository:
+**On the airgapped machine** only `nvim-env.tar.gz` and `nvim-docker/run.sh`
+are needed; neither task nor this repository:
 
 ```bash
 gunzip -c nvim-env.tar.gz | podman load        # or: task docker:nvim:load
-mkdir -p ~/gomodcache && tar -xzf gomodcache.tar.gz -C ~/gomodcache
 cd ~/src/workspace/myproject
-GOMODCACHE_HOST=~/gomodcache ./run.sh --workspace ~/src/workspace
+./run.sh --workspace ~/src/workspace
 ```
+
+**Go modules** come from the environment `run.sh` is called from. It forwards
+`GOPROXY`, `GOSUMDB`, `GOFLAGS`, `GOWORK`, `GOPRIVATE`, `GONOSUMDB`,
+`GONOPROXY`, `GOTOOLCHAIN` and `CGO_ENABLED` when they are set; unset ones keep
+the image defaults (`GOPROXY=off`, `GOSUMDB=off`, `GOTOOLCHAIN=local`). So:
+
+- with an internal module proxy, export `GOPROXY` (and `GONOSUMDB`/`GOPRIVATE`
+  as your setup needs) before calling `run.sh`;
+- with a vendored source bundle, source its environment file first, so
+  `GOFLAGS=-mod=vendor` and `GOWORK` reach the container. `GOWORK` must point
+  inside the mounted workspace. `GOROOT` and `PATH` are not forwarded; the
+  image brings its own Go, which must be at least the bundle's Go version.
+
+The host module cache is mounted when it exists (`GOMODCACHE_HOST`, else
+`go env GOMODCACHE`). The host's CA bundle is mounted too, so a proxy or git
+server signed by an in-house CA is trusted.
 
 `run.sh --help` lists its options; the `docker:nvim:run`, `shell` and
 `test-offline` tasks call it.
@@ -203,6 +217,5 @@ container runs with `--init`, which reaps orphaned processes; without it they
 pile up as zombies until Go can no longer create threads.
 
 The ssh agent (`SSH_AUTH_SOCK`) and `~/.ssh/known_hosts` are forwarded for git.
-With an internal Go module proxy, set `GOPROXY_OVERRIDE=https://...` instead of
-carrying the module cache. With rootless podman, files the container writes stay
-yours; with rootful docker they are owned by root.
+With rootless podman, files the container writes stay yours; with rootful
+docker they are owned by root.

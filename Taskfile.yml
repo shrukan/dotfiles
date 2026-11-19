@@ -160,18 +160,6 @@ tasks:
       ENGINE:
         sh: command -v podman >/dev/null && echo podman || echo docker
 
-  docker:nvim:modcache:
-    desc: "Download every module of WORKSPACE and pack the Go module cache to gomodcache.tar.gz"
-    requires:
-      vars:
-        - WORKSPACE
-    vars:
-      GOMODCACHE_HOST:
-        sh: go env GOMODCACHE
-    cmds:
-      - cd "{{.WORKSPACE}}" && go mod download all
-      - tar -czf gomodcache.tar.gz -C "{{.GOMODCACHE_HOST}}" .
-
   _container:
     internal: true
     vars:

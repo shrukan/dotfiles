@@ -89,9 +89,9 @@ RUN chmod +x /usr/local/bin/setup-nvim-in-container.sh \
 
 # --- Offline behaviour ---
 # NVIM_OFFLINE stops lazy, Mason, Tree-sitter and windsurf from reaching the
-# network. The Go settings make a missing module or toolchain an immediate
-# error instead of a download attempt: modules come from the module cache
-# mounted at /root/go/pkg/mod. Override GOPROXY with -e for an internal proxy.
+# network. The Go settings are defaults that make a missing module or
+# toolchain an immediate error instead of a download attempt; run.sh replaces
+# them with the calling shell's GOPROXY, GOFLAGS, GOWORK, ... when those are set.
 ENV NVIM_OFFLINE=1 \
 	GOTOOLCHAIN=local \
 	GOPROXY=off \

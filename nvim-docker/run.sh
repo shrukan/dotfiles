@@ -14,14 +14,23 @@
 #   --workspace DIR   directory to mount (default: current directory)
 #   --image NAME      image to run (default: nvim-env)
 #
-# Environment:
-#   GOMODCACHE_HOST   Go module cache to mount (default: go env GOMODCACHE,
-#                     else ~/go/pkg/mod); on the airgapped system the unpacked
-#                     gomodcache.tar.gz
-#   GOPROXY_OVERRIDE  an internal Go module proxy to use instead of GOPROXY=off
+# Go environment:
+#   The Go settings of the calling shell are forwarded when set: GOPROXY,
+#   GOSUMDB, GOFLAGS, GOWORK, GOPRIVATE, GONOSUMDB, GONOPROXY, GOTOOLCHAIN,
+#   CGO_ENABLED. Unset ones keep the image defaults (GOPROXY=off, GOSUMDB=off,
+#   GOTOOLCHAIN=local). So an internal module proxy, or the env file of a
+#   vendored offline bundle, works by setting it in the shell before calling
+#   this script. GOROOT and PATH are not forwarded: the image brings its own Go.
+#   GOWORK must point inside the workspace.
+#
+# Other environment:
+#   GOMODCACHE_HOST   Go module cache to mount (default: go env GOMODCACHE, else
+#                     ~/go/pkg/mod); skipped when the directory does not exist
 #   CONTAINER_ENGINE  podman or docker (default: podman when installed)
 #
-# The ssh agent (SSH_AUTH_SOCK) and ~/.ssh/known_hosts are forwarded for git.
+# Also forwarded: the ssh agent (SSH_AUTH_SOCK) and ~/.ssh/known_hosts for git,
+# and the host's CA bundle (SSL_CERT_FILE, else the system bundle), so an
+# internal proxy or git server signed by an in-house CA is trusted.
 # With rootless podman, container root is you, so files written stay yours.
 
 set -euo pipefail
@@ -75,9 +84,22 @@ if [ -z "$modcache" ]; then
 	modcache="$(go env GOMODCACHE 2>/dev/null || true)"
 	modcache="${modcache:-$HOME/go/pkg/mod}"
 fi
-if [ ! -d "$modcache" ]; then
-	echo "Go module cache $modcache does not exist; set GOMODCACHE_HOST" >&2
-	exit 1
+
+if [ -n "${GOWORK:-}" ] && [ "$GOWORK" != off ]; then
+	case "$GOWORK" in
+	"$workspace"/*) ;;
+	*) echo "warning: GOWORK=$GOWORK is outside the workspace $workspace and not visible in the container" >&2 ;;
+	esac
+fi
+
+cabundle="${SSL_CERT_FILE:-}"
+if [ -z "$cabundle" ]; then
+	for f in /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt; do
+		if [ -f "$f" ]; then
+			cabundle="$f"
+			break
+		fi
+	done
 fi
 
 # --init: nvim does not reap orphaned processes, so as PID 1 it collects
@@ -90,7 +112,6 @@ args=(
 	--security-opt label=disable
 	-v "$workspace:$workspace"
 	-w "$workdir"
-	-v "$modcache:/root/go/pkg/mod"
 	-v nvim-env-cache:/root/.cache
 	-e TERM -e COLORTERM
 )
@@ -103,8 +124,14 @@ fi
 if [ -f "$HOME/.ssh/known_hosts" ]; then
 	args+=(-v "$HOME/.ssh/known_hosts:/root/.ssh/known_hosts:ro")
 fi
-if [ -n "${GOPROXY_OVERRIDE:-}" ]; then
-	args+=(-e GOPROXY="$GOPROXY_OVERRIDE" -e GOSUMDB=off)
+if [ -d "$modcache" ]; then
+	args+=(-v "$modcache:/root/go/pkg/mod")
 fi
+if [ -n "$cabundle" ] && [ -f "$cabundle" ]; then
+	args+=(-v "$(readlink -f "$cabundle"):/etc/ssl/certs/ca-certificates.crt:ro")
+fi
+for v in GOPROXY GOSUMDB GOFLAGS GOWORK GOPRIVATE GONOSUMDB GONOPROXY GOTOOLCHAIN CGO_ENABLED; do
+	if [ -n "${!v+x}" ]; then args+=(-e "$v=${!v}"); fi
+done
 
 exec "$engine" run "${args[@]}" "$image" "$@"
