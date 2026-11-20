@@ -79,7 +79,7 @@ RUN GOBIN=/usr/local/bin go install golang.org/x/tools/gopls@${GOPLS_VERSION} \
 RUN sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin -t "${CHEZMOI_VERSION}"
 
 # --- Copy neovim config ---
-COPY /dot_config/nvim /root/.config/nvim
+COPY /nvim /root/.config/nvim
 
 # --- Neovim Config Setup ---
 COPY ./nvim-docker/setup-nvim-in-container.sh /usr/local/bin/setup-nvim-in-container.sh

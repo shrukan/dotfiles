@@ -5,7 +5,7 @@ This repository contains my personal configuration files (dotfiles) for various 
 ## Features
 
 * **Chezmoi Integration:** Seamless management and synchronization of dotfiles across systems.
-* **Neovim:** My fully customized neovim setup, see [README](dot_config/nvim/README.md).
+* **Neovim:** My fully customized neovim setup, see [README](nvim/README.md).
 * **Alacritty:** Customized fast terminal emulator.
 * **Zellij:** Terminal multiplexer with vim-style keybindings.
 * **Scripts:** This repository provides bash scripts for installing dependencies, such as chezmoi, neovim, and fonts.
@@ -64,10 +64,20 @@ To update your dotfiles after pulling new changes from the GitHub repository:
 2. **Apply changes with chezmoi:**
 
     ```bash
-    chezmoi apply
+    task apply
     ```
 
-   This will sync any changes from your cloned `~/.dotfiles` directory to your actual dotfiles (`~/.config/nvim/`, etc.).
+   This copies the changes from the repository to your actual dotfiles
+   (`~/.config/alacritty/`, etc.). Use `task apply` rather than plain
+   `chezmoi apply`: the task passes the repository as chezmoi's source
+   directory, which the Neovim link below is built from.
+
+### Neovim config
+
+`~/.config/nvim` is a symlink to `nvim/` in this repository, not a copy. Edits,
+new or deleted plugin files and `:Lazy update` change the repository directly,
+so the only steps left are `git commit` and `git push`. `task apply` creates
+the link on a new machine; move an existing `~/.config/nvim` away first.
 
 ## Task
 

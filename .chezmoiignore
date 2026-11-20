@@ -6,9 +6,19 @@
 # Source entries starting with "." (.git, .gitignore, .commitlintrc.yml, .claude)
 # are skipped by chezmoi itself and don't need listing here.
 
+/AGENTS.md
 /CLAUDE.md
 /README.md
 /Taskfile.yml
 /prek.toml
 /nvim-docker
 /scripts
+
+# The Neovim config lives in /nvim and is linked from ~/.config/nvim by
+# dot_config/symlink_nvim.tmpl, so edits and :Lazy update land in the repo.
+/nvim
+/nvim/**
+
+# Exported nvim-docker image (task docker:nvim:save); gitignored, but chezmoi
+# does not read .gitignore.
+/nvim-env.tar.gz
