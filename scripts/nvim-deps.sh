@@ -89,8 +89,11 @@ install_go() {
 		return
 	fi
 	echo "Installing Go ${GO_VERSION}..."
-	curl -Lo /tmp/go.tar.gz "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" &&
-		tar -C /usr/local -xzf /tmp/go.tar.gz &&
+	# Go's install docs: never untar over an existing /usr/local/go — files removed
+	# in the new release would linger and can break the toolchain.
+	curl -fLo /tmp/go.tar.gz "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" &&
+		run_as_sudo rm -rf /usr/local/go &&
+		run_as_sudo tar -C /usr/local -xzf /tmp/go.tar.gz &&
 		rm /tmp/go.tar.gz
 }
 
