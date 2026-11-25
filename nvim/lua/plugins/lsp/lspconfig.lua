@@ -101,7 +101,9 @@ return {
 					},
 					staticcheck = true,
 					semanticTokens = true,
-					directoryFilters = { "-.git", "-.vscode", "-.idea", "-.vscode-test", "-node_modules" },
+					-- `**/` matters: plain "-node_modules" only skips the top-level one, so
+					-- gopls would still walk every nested node_modules in a monorepo.
+					directoryFilters = { "-.git", "-.vscode", "-.idea", "-.vscode-test", "-**/node_modules" },
 					completeUnimported = true,
 				},
 			},
@@ -135,9 +137,13 @@ return {
 
 		-- configure servers for web development
 		vim.lsp.config("ts_ls", {
+			-- typescript-language-server reads this only from init_options; under
+			-- settings it was ignored and tsserver ran on Node's default heap.
+			init_options = {
+				maxTsServerMemory = 4096,
+			},
 			---@type lspconfig.settings.ts_ls
 			settings = {
-				MaxTsServerMemory = 4096,
 				preferences = {
 					includeInlayParameterTypeHints = "all",
 					includeInlayFunctionParameterTypeHints = true,
@@ -174,6 +180,11 @@ return {
 		vim.lsp.enable("taplo")
 
 		vim.lsp.config("jsonls", {
+			-- Build the schemastore catalog (~20ms) only when this server starts,
+			-- not on every BufReadPre that loads lspconfig.
+			before_init = function(_, config)
+				config.settings.json.schemas = require("schemastore").json.schemas()
+			end,
 			---@type lspconfig.settings.jsonls
 			settings = {
 				json = {
@@ -181,7 +192,6 @@ return {
 						enable = false,
 						url = "",
 					},
-					schemas = require("schemastore").json.schemas(),
 					validate = { enable = true },
 				},
 			},
@@ -190,6 +200,11 @@ return {
 		vim.lsp.enable("jsonls")
 
 		vim.lsp.config("yamlls", {
+			-- Build the schemastore catalog (~20ms) only when this server starts,
+			-- not on every BufReadPre that loads lspconfig.
+			before_init = function(_, config)
+				config.settings.yaml.schemas = require("schemastore").yaml.schemas()
+			end,
 			---@type lspconfig.settings.yamlls
 			settings = {
 				yaml = {
@@ -197,7 +212,6 @@ return {
 						enable = false,
 						url = "",
 					},
-					schemas = require("schemastore").yaml.schemas(),
 					validate = true,
 				},
 			},
