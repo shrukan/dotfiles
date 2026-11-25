@@ -44,7 +44,14 @@ return {
 		end
 
 		vim.api.nvim_create_autocmd("FileType", {
-			callback = function()
+			callback = function(args)
+				-- Parsing a huge file (minified bundle, generated code, a vendored
+				-- dependency reached via go-to-definition) blocks the UI; those fall
+				-- back to regex syntax highlighting instead.
+				local stat = vim.uv.fs_stat(vim.api.nvim_buf_get_name(args.buf))
+				if stat and stat.size > 1024 * 1024 then
+					return
+				end
 				pcall(vim.treesitter.start)
 				vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
 			end,

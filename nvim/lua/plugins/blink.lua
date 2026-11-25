@@ -97,6 +97,17 @@ return {
 				ripgrep = {
 					module = "blink-ripgrep",
 					name = "Ripgrep",
+					-- Only where no language server offers completion: the server already
+					-- knows the identifiers, and ripgrep's output in a large repo (tens of MB
+					-- of JSON per keystroke, decoded on the main thread) makes typing lag.
+					enabled = function()
+						for _, client in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do
+							if client:supports_method("textDocument/completion") then
+								return false
+							end
+						end
+						return true
+					end,
 					opts = {},
 					score_offset = 0,
 				},
@@ -169,10 +180,6 @@ return {
 			per_filetype = {
 				text = { "dictionary" },
 				markdown = { "thesaurus" },
-				-- no ripgrep: gopls knows the identifiers, and ripgrep's output in a
-				-- large Go codebase (tens of MB of JSON per keystroke, decoded on the
-				-- main thread) makes typing lag and delays the menu
-				go = { "lsp", "path", "snippets", "buffer", "nerdfont", "spell" },
 			},
 		},
 

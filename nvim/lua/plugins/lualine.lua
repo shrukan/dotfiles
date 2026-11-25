@@ -77,12 +77,67 @@ return {
 	"nvim-lualine/lualine.nvim",
 	dependencies = {
 		"nvim-tree/nvim-web-devicons",
-		"bezhermoso/todos-lualine.nvim",
 		"folke/todo-comments.nvim",
 	},
 	config = function()
-		local todos_component = require("todos-lualine").component({
-			order = { "TODO", "FIX", "HACK" },
+		-- Project-wide TODO/FIX/HACK counts. todos-lualine restarted a ripgrep over the
+		-- whole cwd on nearly every statusline redraw (every second and on each cursor
+		-- move), which keeps a core busy in large repos. Search only on start, after a
+		-- save and when the cwd changes.
+		local todo_order = { "TODO", "FIX", "HACK" }
+		local todo_status = ""
+		local todo_started, todo_searching, todo_pending = false, false, false
+
+		local function refresh_todos()
+			if todo_searching then
+				todo_pending = true
+				return
+			end
+			todo_searching = true
+			local keywords_cfg = require("todo-comments.config").options.keywords
+			local keywords = {}
+			for _, kw in ipairs(todo_order) do
+				table.insert(keywords, kw)
+				vim.list_extend(keywords, (keywords_cfg[kw] or {}).alt or {})
+			end
+			require("todo-comments.search").search(function(results)
+				local counts = {}
+				for _, item in ipairs(results) do
+					counts[item.tag] = (counts[item.tag] or 0) + 1
+				end
+				-- Fixed todo_order so segments keep their position and witdh between refreshes.
+				local parts = {}
+				for _, kw in ipairs(todo_order) do
+					if counts[kw] then
+						table.insert(parts, ((keywords_cfg[kw] or {}).icon or (kw .. ": ")) .. counts[kw])
+					end
+				end
+				todo_status = table.concat(parts, " ")
+				todo_searching = false
+				if todo_pending then
+					todo_pending = false
+					refresh_todos()
+				end
+			end, { keywords = table.concat(keywords, ","), disable_not_found_warnings = true })
+		end
+
+		-- todo-comments finishes its setup after VimEnter, so the first search starts
+		-- from the first statusline redraw after that.
+		local function todos_component()
+			if not todo_started and require("todo-comments.config").loaded then
+				todo_started = true
+				refresh_todos()
+			end
+			return todo_status
+		end
+
+		vim.api.nvim_create_autocmd({ "BufWritePost", "DirChanged" }, {
+			group = vim.api.nvim_create_augroup("lualine_todos", { clear = true }),
+			callback = function()
+				if todo_started then
+					refresh_todos()
+				end
+			end,
 		})
 
 		require("lualine").setup({
