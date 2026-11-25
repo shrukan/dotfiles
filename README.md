@@ -176,7 +176,7 @@ and they can only analyse code whose `go` directive is not newer than that.
 Build with a `GO_VERSION` at least as new as every project you open:
 
 ```bash
-task docker:nvim:build GO_VERSION=1.27.3
+task docker:nvim:build GO_VERSION=1.27.4
 ```
 
 ### On the online machine

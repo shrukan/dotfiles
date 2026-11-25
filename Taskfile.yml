@@ -105,7 +105,7 @@ tasks:
   docker:nvim:build:
     desc: "Build the Neovim Docker image (GO_VERSION=x.y.z to match your projects)"
     vars:
-      GO_VERSION: '{{.GO_VERSION | default "1.27.3"}}'
+      GO_VERSION: '{{.GO_VERSION | default "1.27.4"}}'
     cmds:
       - task: _container
         vars:

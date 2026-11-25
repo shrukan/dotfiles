@@ -18,7 +18,7 @@ RPM_RUNTIME_DEPS=(
 
 # Tool versions (keep in sync with Dockerfile)
 # Can be overridden via environment variables (used by Dockerfile)
-GO_VERSION="${GO_VERSION:-1.27.3}"
+GO_VERSION="${GO_VERSION:-1.27.4}"
 NODE_VERSION="${NODE_VERSION:-24.0.0}"
 LAZYGIT_VERSION="${LAZYGIT_VERSION:-0.62.2}"
 TEMPL_VERSION="${TEMPL_VERSION:-0.3.1001}"
