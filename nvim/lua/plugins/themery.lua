@@ -36,6 +36,20 @@ return {
 			livePreview = true,
 		})
 
+		-- Themery only restores a theme saved in stdpath("data"); a fresh machine or
+		-- container has none and would start on Neovim's built-in default. theme_id is
+		-- set exactly when a saved state was loaded. Not persisted, so a later pick wins.
+		-- setThemeByIndex rather than setThemeByName: the latter stores index + 1.
+		local default_theme = "Onedark (Deeper)"
+		if vim.g.theme_id == nil then
+			for i, theme in ipairs(require("themery").getAvailableThemes()) do
+				if theme.name == default_theme then
+					require("themery").setThemeByIndex(i, false)
+					break
+				end
+			end
+		end
+
 		vim.keymap.set("n", "<leader>sc", "<cmd>Themery<CR>", { desc = "Colorscheme" })
 	end,
 }
