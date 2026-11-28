@@ -17,9 +17,9 @@ file into chezmoi, `task diff` to preview, `task apply` to apply. Tasks prefixed
   removes. They use `set -e`, detect dnf vs apt, and install to `~/.local/bin`
   (nvim uses `$INSTALL_PREFIX`). A new tool means a new script plus entries in
   `Taskfile.yml`, `install:all`, and the README.
-- **Neovim** is LazyVim-based; each plugin gets its own file under
-  `nvim/lua/plugins/`. Mason handles LSPs, formatters, and linters.
-  Keep the Prerequisites section of `nvim/README.md` current.
+- **Neovim** uses plain lazy.nvim (not LazyVim); each plugin gets its own
+  file under `nvim/lua/plugins/`. Mason handles LSPs, formatters, and
+  linters. Keep the Prerequisites section of `nvim/README.md` current.
 - **Fonts** live in `scripts/fonts.sh` — updating one means updating the README
   font table too.
 - **Git**: Conventional Commits, enforced by commitlint. Scopes: `repo`,
