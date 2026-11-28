@@ -86,7 +86,7 @@ return {
 					analyses = {
 						unusedparams = true,
 						unusedwrite = true,
-						shadow = true,
+						shadow = false,
 						nilness = true,
 						useany = true,
 					},

@@ -4,10 +4,11 @@ return {
 	cond = not vim.g.offline,
 	dependencies = {
 		"nvim-lua/plenary.nvim",
-		"hrsh7th/nvim-cmp",
 	},
 	config = function()
 		require("codeium").setup({
+			-- completions come from blink.cmp; Codeium only shows virtual text
+			enable_cmp_source = false,
 			virtual_text = {
 				enabled = true,
 
